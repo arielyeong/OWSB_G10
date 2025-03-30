@@ -2,13 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
-package owsb_g10;
+package salesmanagement;
 
 /**
  *
  * @author Yeong Huey Yee
  */
-public class OWSB_G10 {
+public class itementry {
 
     /**
      * @param args the command line arguments
