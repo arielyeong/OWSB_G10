@@ -333,21 +333,21 @@ public class DailySalesEntry extends javax.swing.JFrame {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Daily Item-wise Sales Management:");
 
-        btnAdd.setText("Add Item");
+        btnAdd.setText("Add Sales");
         btnAdd.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnAddActionPerformed(evt);
             }
         });
 
-        btnUpdate.setText("Update Item");
+        btnUpdate.setText("Update Sales");
         btnUpdate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnUpdateActionPerformed(evt);
             }
         });
 
-        btnDelete.setText("Delete Item");
+        btnDelete.setText("Delete Sales");
         btnDelete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDeleteActionPerformed(evt);

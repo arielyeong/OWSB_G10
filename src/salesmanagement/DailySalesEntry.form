@@ -146,6 +146,7 @@
           <SubComponents>
             <Component class="javax.swing.JButton" name="btnBack">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Back"/>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="66" green="66" red="66" type="rgb"/>
                 </Property>
@@ -155,7 +156,6 @@
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="ff" green="ff" red="ff" type="rgb"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Back"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnBackActionPerformed"/>
@@ -163,10 +163,10 @@
             </Component>
             <Component class="javax.swing.JLabel" name="header">
               <Properties>
+                <Property name="text" type="java.lang.String" value="OWSB Purchase Order Management System"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Sitka Text" size="24" style="1"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="OWSB Purchase Order Management System"/>
                 <Property name="toolTipText" type="java.lang.String" value=""/>
               </Properties>
             </Component>
@@ -271,68 +271,68 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel12">
               <Properties>
+                <Property name="horizontalAlignment" type="int" value="0"/>
+                <Property name="text" type="java.lang.String" value=" ~ Daily Sales Entry ~"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="16" style="3"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="cc" green="0" red="0" type="rgb"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="text" type="java.lang.String" value=" ~ Daily Sales Entry ~"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel21">
               <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" value="Sales ID :"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="4"/>
-                <Property name="text" type="java.lang.String" value="Sales ID :"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel22">
               <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" value="Quantity Sold :"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="4"/>
-                <Property name="text" type="java.lang.String" value="Quantity Sold :"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel23">
               <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" value="Item ID :"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="4"/>
-                <Property name="text" type="java.lang.String" value="Item ID :"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel24">
               <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" value="Date :"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="4"/>
-                <Property name="text" type="java.lang.String" value="Date :"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel25">
               <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" value="Total Price :"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="4"/>
-                <Property name="text" type="java.lang.String" value="Total Price :"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel26">
               <Properties>
+                <Property name="horizontalAlignment" type="int" value="4"/>
+                <Property name="text" type="java.lang.String" value="Item Name :"/>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
-                <Property name="horizontalAlignment" type="int" value="4"/>
-                <Property name="text" type="java.lang.String" value="Item Name :"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="txtItemId">
@@ -361,19 +361,19 @@
         </Container>
         <Component class="javax.swing.JLabel" name="jLabel1">
           <Properties>
+            <Property name="horizontalAlignment" type="int" value="0"/>
+            <Property name="text" type="java.lang.String" value="Daily Item-wise Sales Management:"/>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Sitka Text" size="24" style="3"/>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="ff" green="33" red="0" type="rgb"/>
             </Property>
-            <Property name="horizontalAlignment" type="int" value="0"/>
-            <Property name="text" type="java.lang.String" value="Daily Item-wise Sales Management:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="btnAdd">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Add Item"/>
+            <Property name="text" type="java.lang.String" value="Add Sales"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddActionPerformed"/>
@@ -381,7 +381,7 @@
         </Component>
         <Component class="javax.swing.JButton" name="btnUpdate">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Update Item"/>
+            <Property name="text" type="java.lang.String" value="Update Sales"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnUpdateActionPerformed"/>
@@ -389,7 +389,7 @@
         </Component>
         <Component class="javax.swing.JButton" name="btnDelete">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Delete Item"/>
+            <Property name="text" type="java.lang.String" value="Delete Sales"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDeleteActionPerformed"/>
