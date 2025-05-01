@@ -4,19 +4,203 @@
  */
 package salesmanagement;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
+import javax.swing.ListSelectionModel;
+
 /**
  *
  * @author Yeong Huey Yee
  */
 public class itementry extends javax.swing.JFrame {
+    
+    private List<Item> items = new ArrayList<>();
+    private List<Supplier> suppliers = new ArrayList<>();
+    private final String ITEM_FILE = "item.txt";
+    private final String SUPPLIER_FILE = "supplier.txt";
+    private ItemManager itemManager;
+    
+// File handling methods
+    private void loadDataFromFiles() {
+        items.clear();
+        suppliers.clear();
 
-    /**
-     * Creates new form itementry
-     */
-    public itementry() {
-        initComponents();
+        // Load items
+        try (BufferedReader reader = new BufferedReader(new FileReader(ITEM_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                items.add(Item.fromFileString(line));
+            }
+        } catch (IOException e) {
+            System.out.println("No existing item file found, starting fresh.");
+        }
+
+        // Load suppliers
+        try (BufferedReader reader = new BufferedReader(new FileReader(SUPPLIER_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Supplier s = Supplier.fromFileString(line);
+                if (s != null) {
+                    suppliers.add(s);
+                }
+            }
+
+            // Set supplier list to JList
+            DefaultListModel<String> listModel = new DefaultListModel<>();
+            for (Supplier s : suppliers) {
+                listModel.addElement(s.getSupplierId());
+            }
+            supplierList.setModel(listModel);
+            supplierList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        } catch (IOException e) {
+            System.out.println("No existing supplier file found, starting fresh.");
+        }
     }
 
+    
+    
+    private void saveItemsToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ITEM_FILE))) {
+            for (Item item : itemManager.getAllItems()) {
+                writer.write(item.toFileString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving items to file: " + e.getMessage());
+        }
+    }
+
+    
+     private void clearFields() {
+       textSearch.setText("");
+        txtItemId.setText("");
+        txtItemName.setText("");
+        txtCategory.setSelectedIndex(0);
+        txtUOM.setText("");
+        txtUnitPrice.setText("");
+        txtStockQuantity.setText("");
+    }
+     
+     private void refreshTable() {
+        String[] columnNames = {"Item ID", "Item Name", "Category", "UOM", "Unit Price", "Stock Quantity", "Suppliers"};
+        List<Item> itemList = itemManager.getAllItems();
+        String[][] data = new String[itemList.size()][7];
+
+        for (int i = 0; i < itemList.size(); i++) {
+            Item item = itemList.get(i);
+            data[i][0] = item.getItemId();
+            data[i][1] = item.getItemName();
+            data[i][2] = item.getItemCategory();
+            data[i][3] = item.getItemUOM();
+            data[i][4] = String.valueOf(item.getItemUnitPrice());
+            data[i][5] = String.valueOf(item.getStockQuantity());
+            data[i][6] = getSuppliersForItem(item.getItemId());
+        }
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+    }
+     
+    private String getSuppliersForItem(String itemId) {
+        List<String> supplierIds = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("supplieritem.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && parts[1].equals(itemId)) {
+                    supplierIds.add(parts[0]);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading supplieritem.txt: " + e.getMessage());
+        }
+        return String.join(", ", supplierIds);
+    }
+
+    public itementry() {
+        initComponents();
+        itemManager = new ItemManager();
+        loadDataFromFiles(); 
+        refreshTable();
+    }
+    
+    private void saveItemSupplierLinks(String itemId, List<String> supplierIds) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("supplieritem.txt", true))) {
+            for (String supplierId : supplierIds) {
+                writer.write(supplierId + "," + itemId);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error saving item-supplier mapping.", "IO Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void updateItemSupplierLinks(String itemId, List<String> newSupplierIds) {
+        List<String> allLines = new ArrayList<>();
+
+        // Read existing lines and skip the ones for the given item
+        try (BufferedReader reader = new BufferedReader(new FileReader("supplieritem.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && !parts[1].equals(itemId)) {
+                    allLines.add(line); // keep unrelated lines
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading supplieritem.txt during update: " + e.getMessage());
+        }
+
+        // Add updated links
+        for (String supplierId : newSupplierIds) {
+            allLines.add(supplierId + "," + itemId);
+        }
+
+        // Write back everything
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("supplieritem.txt"))) {
+            for (String l : allLines) {
+                writer.write(l);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error updating item-supplier mapping.", "IO Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Remove all supplier links for a given item
+    private void removeItemSupplierLinks(String itemId) {
+        List<String> updatedLines = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("supplieritem.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && !parts[1].equals(itemId)) {
+                    updatedLines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading supplieritem.txt: " + e.getMessage());
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("supplieritem.txt"))) {
+            for (String l : updatedLines) {
+                writer.write(l);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error writing supplieritem.txt: " + e.getMessage());
+        }
+    }
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -37,20 +221,19 @@ public class itementry extends javax.swing.JFrame {
         jLabel20 = new javax.swing.JLabel();
         jLabel22 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        txtItemId = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        txtUnitPrice = new javax.swing.JTextField();
+        txtUOM = new javax.swing.JTextField();
         txtCategory = new javax.swing.JComboBox<>();
         txtStockQuantity = new javax.swing.JTextField();
-        txtItemDes = new javax.swing.JTextField();
         txtItemName = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        txtUnitPrice = new javax.swing.JTextField();
+        txtItemId = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
-        suppidCB = new javax.swing.JComboBox<>();
-        suppNameL = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel14 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        supplierList = new javax.swing.JList<>();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         btnAdd = new javax.swing.JButton();
@@ -91,7 +274,7 @@ public class itementry extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(50, 50, 50)
                 .addComponent(btnBack)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)
                 .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(103, 103, 103))
         );
@@ -127,24 +310,17 @@ public class itementry extends javax.swing.JFrame {
 
         jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel22.setText("Category :");
+        jLabel22.setText("Category : ");
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel6.setText("Unit Price :");
-
-        txtItemId.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        txtItemId.setText("item id");
-
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel7.setText("Description :");
+        jLabel6.setText("UOM :");
 
         jLabel8.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel8.setText("Stock Quantity :");
 
-        txtCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        txtCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Electronic", "Groceries", "Clothing", "Other" }));
         txtCategory.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCategoryActionPerformed(evt);
@@ -163,6 +339,10 @@ public class itementry extends javax.swing.JFrame {
             }
         });
 
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel7.setText("Unit Price :");
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -170,42 +350,44 @@ public class itementry extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(50, 50, 50)
+                        .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtCategory, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(100, 100, 100)
                         .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(25, 25, 25)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel7)
-                                    .addComponent(jLabel8))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(txtItemId, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(txtUnitPrice, javax.swing.GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE)
-                                    .addComponent(txtStockQuantity)
-                                    .addComponent(txtItemDes)
-                                    .addComponent(txtItemName)))
-                            .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addGap(25, 25, 25)
-                                .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtCategory, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(46, 46, 46)
+                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtItemName)
+                            .addComponent(txtStockQuantity, javax.swing.GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE)
+                            .addComponent(txtUOM, javax.swing.GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE)
+                            .addComponent(txtUnitPrice, javax.swing.GroupLayout.DEFAULT_SIZE, 225, Short.MAX_VALUE)
+                            .addComponent(txtItemId))))
+                .addContainerGap(66, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel21)
-                    .addComponent(txtItemId))
+                    .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtItemId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel20)
@@ -214,40 +396,59 @@ public class itementry extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtCategory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(14, 14, 14)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6)
+                    .addComponent(txtUOM, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
                     .addComponent(txtUnitPrice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
                     .addComponent(txtStockQuantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtItemDes, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7))
                 .addContainerGap(19, Short.MAX_VALUE))
         );
 
         jPanel4.setBackground(new java.awt.Color(217, 232, 239));
 
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel4.setText("Supplier ID :");
+        jPanel5.setBackground(new java.awt.Color(217, 232, 239));
 
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel5.setText("Supplier Name :");
+        jLabel14.setFont(new java.awt.Font("Segoe UI", 3, 16)); // NOI18N
+        jLabel14.setForeground(new java.awt.Color(0, 0, 204));
+        jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel14.setText(" ~ Supplier Select~");
 
-        jLabel13.setFont(new java.awt.Font("Segoe UI", 3, 16)); // NOI18N
-        jLabel13.setForeground(new java.awt.Color(0, 0, 204));
-        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel13.setText(" ~ Supplier Information~");
+        supplierList.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane3.setViewportView(supplierList);
 
-        suppidCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        suppNameL.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        suppNameL.setText("Supplier name");
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addGap(99, 99, 99)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(jScrollPane3))
+                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -255,33 +456,15 @@ public class itementry extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(suppidCB, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(suppNameL, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE))
-                .addGap(80, 80, 80))
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(99, 99, 99)
-                .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+            .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(suppidCB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(suppNameL))
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
@@ -325,6 +508,11 @@ public class itementry extends javax.swing.JFrame {
 
         btnSearch.setText("Search");
         btnSearch.setToolTipText("");
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchActionPerformed(evt);
+            }
+        });
 
         btnDelete.setText("Delete Item");
         btnDelete.addActionListener(new java.awt.event.ActionListener() {
@@ -337,25 +525,27 @@ public class itementry extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 954, Short.MAX_VALUE)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(107, 107, 107)
-                .addComponent(textSearch)
-                .addGap(18, 18, 18)
-                .addComponent(btnSearch)
-                .addGap(83, 83, 83))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(107, 107, 107)
+                        .addComponent(textSearch)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnSearch)
+                        .addGap(83, 83, 83))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGap(0, 31, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 432, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(22, 22, 22)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(25, 25, 25))))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(15, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(22, 22, 22)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(25, 25, 25))
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(254, 254, 254)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnAdd)
                 .addGap(34, 34, 34)
                 .addComponent(btnUpdate)
@@ -363,7 +553,7 @@ public class itementry extends javax.swing.JFrame {
                 .addComponent(btnDelete)
                 .addGap(43, 43, 43)
                 .addComponent(btnClear)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(227, 227, 227))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -375,19 +565,19 @@ public class itementry extends javax.swing.JFrame {
                     .addComponent(btnSearch)
                     .addComponent(textSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 425, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnUpdate)
                     .addComponent(btnAdd)
                     .addComponent(btnDelete)
                     .addComponent(btnClear))
-                .addGap(25, 25, 25))
+                .addContainerGap(22, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -401,14 +591,13 @@ public class itementry extends javax.swing.JFrame {
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        setSize(new java.awt.Dimension(954, 607));
+        setSize(new java.awt.Dimension(954, 639));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        //ui.dashboard.BackButton backButton = new ui.dashboard.BackButton ();
-        //backButton.navigateBasedOnRole();
-        //this.dispose();
+        new MainMenu().setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnBackActionPerformed
 
     private void txtCategoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCategoryActionPerformed
@@ -424,20 +613,209 @@ public class itementry extends javax.swing.JFrame {
     }//GEN-LAST:event_txtStockQuantityActionPerformed
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-        // TODO add your handling code here:
+        try {
+            String id = txtItemId.getText().trim();
+            String name = txtItemName.getText().trim();
+            String uom = txtUOM.getText().trim();
+            String priceText = txtUnitPrice.getText().trim();
+            String qtyText = txtStockQuantity.getText().trim();
+
+            if (id.isEmpty() || name.isEmpty() || uom.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields must be filled in.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            double unitPrice;
+            int stockQty;
+
+            try {
+                unitPrice = Double.parseDouble(priceText);
+                if (unitPrice < 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Unit price must be a valid non-negative number.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                stockQty = Integer.parseInt(qtyText);
+                if (stockQty < 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Stock quantity must be a valid non-negative integer.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            List<String> selectedSupplierIds = supplierList.getSelectedValuesList();
+            if (selectedSupplierIds.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please select at least one supplier.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Item item = new Item(
+                id, name,
+                txtCategory.getSelectedItem().toString(),
+                uom,
+                (int) unitPrice,
+                stockQty,
+                selectedSupplierIds
+            );
+
+            if (itemManager.addItem(item)) {
+                saveItemsToFile();
+                saveItemSupplierLinks(id, selectedSupplierIds); 
+                JOptionPane.showMessageDialog(this, "Item added successfully!");
+                clearFields();
+                refreshTable();
+                loadDataFromFiles();
+            } else {
+                JOptionPane.showMessageDialog(this, "Item ID already exists!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Unexpected error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
-        // TODO add your handling code here:
+        clearFields();
     }//GEN-LAST:event_btnClearActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        // TODO add your handling code here:
+        try {
+            String id = txtItemId.getText().trim();
+            String name = txtItemName.getText().trim();
+            String uom = txtUOM.getText().trim();
+            String priceText = txtUnitPrice.getText().trim();
+            String qtyText = txtStockQuantity.getText().trim();
+
+            if (id.isEmpty() || name.isEmpty() || uom.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields must be filled in.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            double unitPrice;
+            int stockQty;
+            
+            //VALIDATION
+
+            try {
+                unitPrice = Double.parseDouble(priceText);
+                if (unitPrice < 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Unit price must be a valid non-negative number.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                stockQty = Integer.parseInt(qtyText);
+                if (stockQty < 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Stock quantity must be a valid non-negative integer.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            List<String> selectedSupplierIds = supplierList.getSelectedValuesList();
+            if (selectedSupplierIds.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please select at least one supplier.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Item item = new Item(
+                id, name,
+                txtCategory.getSelectedItem().toString(),
+                uom,
+                (int) unitPrice,
+                stockQty,
+                selectedSupplierIds
+            );
+
+            if (itemManager.updateItem(item)) {
+                saveItemsToFile();
+                updateItemSupplierLinks(id, selectedSupplierIds); 
+                JOptionPane.showMessageDialog(this, "Item updated successfully!");
+                clearFields();
+                refreshTable();
+                loadDataFromFiles();
+            } else {
+                JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Unexpected error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        // TODO add your handling code here:
+        String id = textSearch.getText().trim();
+
+        if (itemManager.deleteItem(id)) {
+            removeItemSupplierLinks(id); 
+            saveItemsToFile();
+            JOptionPane.showMessageDialog(this, "Item deleted successfully!");
+            clearFields();
+            refreshTable();
+            loadDataFromFiles();
+        } else {
+            JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String id = textSearch.getText().trim();
+    Item item = itemManager.findItemById(id);
+
+    if (item != null) {
+        txtItemId.setText(item.getItemId());
+        txtItemName.setText(item.getItemName());
+        txtCategory.setSelectedItem(item.getItemCategory());
+        txtUOM.setText(item.getItemUOM());
+        txtUnitPrice.setText(String.valueOf(item.getItemUnitPrice()));
+        txtStockQuantity.setText(String.valueOf(item.getStockQuantity()));
+
+        // Load all supplier IDs linked to this item from supplieritem.txt
+        List<String> linkedSupplierIds = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("supplieritem.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && parts[1].equals(item.getItemId())) {
+                    linkedSupplierIds.add(parts[0]);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading supplieritem.txt: " + e.getMessage());
+        }
+
+        // Select those suppliers in jList1
+        List<Integer> selectedIndices = new ArrayList<>();
+        for (int i = 0; i < supplierList.getModel().getSize(); i++) {
+            String listEntry = supplierList.getModel().getElementAt(i);
+            String listSupplierId = listEntry.split(" - ")[0]; // Extract ID only
+            if (linkedSupplierIds.contains(listSupplierId)) {
+                selectedIndices.add(i);
+            }
+        }
+        int[] indicesArray = selectedIndices.stream().mapToInt(i -> i).toArray();
+        supplierList.setSelectedIndices(indicesArray);
+
+        
+        StringBuilder supplierNames = new StringBuilder();
+        for (String supplierId : linkedSupplierIds) {
+            for (Supplier s : suppliers) {
+                if (s.getSupplierId().equals(supplierId)) {
+                    supplierNames.append(s.getSupplierName()).append(", ");
+                }
+            }
+        }
+        if (supplierNames.length() > 0) {
+            supplierNames.setLength(supplierNames.length() - 2); // remove trailing comma
+        }
+        
+
+    } else {
+        JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    }//GEN-LAST:event_btnSearchActionPerformed
 
     /**
      * @param args the command line arguments
@@ -485,12 +863,10 @@ public class itementry extends javax.swing.JFrame {
     private javax.swing.JLabel header;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -498,16 +874,17 @@ public class itementry extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable jTable1;
-    private javax.swing.JLabel suppNameL;
-    private javax.swing.JComboBox<String> suppidCB;
+    private javax.swing.JList<String> supplierList;
     private javax.swing.JTextField textSearch;
     private javax.swing.JComboBox<String> txtCategory;
-    private javax.swing.JTextField txtItemDes;
-    private javax.swing.JLabel txtItemId;
+    private javax.swing.JTextField txtItemId;
     private javax.swing.JTextField txtItemName;
     private javax.swing.JTextField txtStockQuantity;
+    private javax.swing.JTextField txtUOM;
     private javax.swing.JTextField txtUnitPrice;
     // End of variables declaration//GEN-END:variables
 }

@@ -1,27 +1,18 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
- */
 package salesmanagement;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author Yeong Huey Yee
- */
 public class Supplier {
-   // Private variables
     private String supplierId;
     private String supplierName;
     private String supplierPhone;
     private String supplierEmail;
     private String supplierAddress;
-    private List<Item> items; // Many-to-many relationship
+    private List<Item> items; // A supplier can supply many items
 
-    // Constructor
-    public Supplier(String supplierId, String supplierName, String supplierPhone, String supplierEmail, String supplierAddress, String string) {
+    // --- Constructor ---
+    public Supplier(String supplierId, String supplierName, String supplierPhone, String supplierEmail, String supplierAddress) {
         this.supplierId = supplierId;
         this.supplierName = supplierName;
         this.supplierPhone = supplierPhone;
@@ -30,7 +21,7 @@ public class Supplier {
         this.items = new ArrayList<>();
     }
 
-    // Getters and Setters
+    // --- Getters and Setters ---
     public String getSupplierId() {
         return supplierId;
     }
@@ -71,46 +62,40 @@ public class Supplier {
         this.supplierAddress = supplierAddress;
     }
 
-    // Methods for many-to-many relationship
+    public List<Item> getItems() {
+        return items; // Allow direct manipulation for many-to-many mapping
+    }
+
+    public void setItems(List<Item> items) {
+        this.items = items;
+    }
+
+    // --- Methods to manage item relationship ---
     public void addItem(Item item) {
         if (!items.contains(item)) {
             items.add(item);
-            item.addSupplier(this); // Bidirectional relationship
         }
     }
 
     public void removeItem(Item item) {
-        if (items.remove(item)) {
-            item.removeSupplier(this); // Bidirectional relationship
-        }
-    }
-
-    public List<Item> getItems() {
-        return new ArrayList<>(items); // Return copy to preserve encapsulation
+        items.remove(item);
     }
 
     public int getTotalItems() {
         return items.size();
     }
 
-    // File handling method
+    // --- File saving (excluding item list for many-to-many) ---
     public String toFileString() {
-        return String.format("%s,%s,%s,%s,%s", 
-                supplierId, supplierName, supplierPhone, supplierEmail, supplierAddress);
+        return supplierId + "|" + supplierName + "|" + supplierPhone + "|" + supplierEmail + "|" + supplierAddress;
     }
 
-    // Method to create Supplier from file string
-    public static Supplier fromFileString(String fileString) {
-        String[] parts = fileString.split(",");
-        return new Supplier(parts[0], parts[1], parts[2], parts[3], parts[4], "");
+    // --- File loading ---
+    public static Supplier fromFileString(String line) {
+        String[] parts = line.split("\\|");
+        if (parts.length < 5) {
+            return null; 
+        }
+        return new Supplier(parts[0], parts[1], parts[2], parts[3], parts[4]);
     }
-
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        // TODO code application logic here
-    }
-    
 }

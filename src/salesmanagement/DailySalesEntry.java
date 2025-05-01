@@ -4,18 +4,125 @@
  */
 package salesmanagement;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import javax.swing.JOptionPane;
+
+
 /**
  *
  * @author Yeong Huey Yee
  */
 public class DailySalesEntry extends javax.swing.JFrame {
-
+    
+    private DailySalesManager salesManager;
+    private javax.swing.JTextField txtDate;
+    private final String ITEM_FILE = "item.txt";
+    private List<Item> items = new ArrayList<>();
+    
     /**
      * Creates new form DailySalesEntry
      */
     public DailySalesEntry() {
-        initComponents();
+    initComponents();
+    salesManager = new DailySalesManager();
+    loadItemsFromFile();
+    refreshTable();
+}
+    
+    private void loadItemsFromFile() {
+    try (BufferedReader reader = new BufferedReader(new FileReader(ITEM_FILE))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            Item item = Item.fromFileString(line);
+            items.add(item);
+        }
+    } catch (IOException e) {
+        System.out.println("No existing item file found, starting fresh.");
     }
+}
+    
+    private void refreshTable() {
+        String[] columnNames = {"Sales ID", "Item ID", "Item Name", "Date", "Quantity Sold", "Total Price"};
+        List<DailySales> salesList = salesManager.getAllSales();
+        String[][] data = new String[salesList.size()][6];
+
+        for (int i = 0; i < salesList.size(); i++) {
+            DailySales sale = salesList.get(i);
+            data[i][0] = sale.getSalesId();
+            data[i][1] = sale.getItemId();
+            data[i][2] = sale.getItemName();
+            data[i][3] = sale.getDate();
+            data[i][4] = String.valueOf(sale.getQuantitySold());
+            data[i][5] = String.valueOf(sale.getTotalPrice());
+        }
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+    }
+    
+    private void saveItemsToFile() {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(ITEM_FILE))) {
+        for (Item item : items) {
+            writer.write(item.toFileString());
+            writer.newLine();
+        }
+    } catch (IOException e) {
+        System.out.println("Error saving items to file: " + e.getMessage());
+    }
+}
+    
+    private void clearFields() {
+        txtSaleId1.setText("");
+        txtItemId.setText("");
+        txtItemName.setText("");
+        txtQtySold.setText("");
+        txtTotalPrice.setText("");
+        textSearch.setText("");
+        datePicker1.setDate(null);
+    }
+    
+    private void updateTotalPrice() {
+        try {
+            String selectedItemId = txtItemId.getText().trim();
+            String qtyText = txtQtySold.getText().trim();
+
+            if (!selectedItemId.isEmpty() && !qtyText.isEmpty()) {
+                int quantity = Integer.parseInt(qtyText);
+                for (Item item : items) {
+                    if (item.getItemId().equals(selectedItemId)) {
+                        double totalPrice = quantity * item.getItemUnitPrice();
+                        txtTotalPrice.setText(String.format("%.2f", totalPrice));
+                        return;
+                    }
+                }
+            } else {
+                txtTotalPrice.setText("");
+            }
+        } catch (NumberFormatException e) {
+            txtTotalPrice.setText("");
+        }
+    }
+    
+    private Item findItemById(String itemId) {
+        for (Item item : items) {   // 你的 items list
+            if (item.getItemId().equals(itemId)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -45,7 +152,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
         txtItemName = new javax.swing.JTextField();
         txtQtySold = new javax.swing.JTextField();
         txtTotalPrice = new javax.swing.JTextField();
-        jDateChooser1 = new com.toedter.calendar.JDateChooser();
+        datePicker1 = new com.github.lgooddatepicker.components.DatePicker();
         jLabel1 = new javax.swing.JLabel();
         btnAdd = new javax.swing.JButton();
         btnUpdate = new javax.swing.JButton();
@@ -82,7 +189,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(50, 50, 50)
                 .addComponent(btnBack)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(103, 103, 103))
         );
@@ -135,9 +242,26 @@ public class DailySalesEntry extends javax.swing.JFrame {
         jLabel26.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel26.setText("Item Name :");
 
+        txtItemId.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtItemIdActionPerformed(evt);
+            }
+        });
+        txtItemId.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtItemIdKeyReleased(evt);
+            }
+        });
+
         txtSaleId1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtSaleId1ActionPerformed(evt);
+            }
+        });
+
+        txtQtySold.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtQtySoldKeyReleased(evt);
             }
         });
 
@@ -150,27 +274,25 @@ public class DailySalesEntry extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(jPanel3Layout.createSequentialGroup()
                             .addGap(28, 28, 28)
                             .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                 .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGroup(jPanel3Layout.createSequentialGroup()
-                            .addGap(28, 28, 28)
-                            .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtSaleId1)
+                    .addComponent(txtSaleId1, javax.swing.GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
                     .addComponent(txtItemId)
                     .addComponent(txtItemName)
                     .addComponent(txtQtySold)
                     .addComponent(txtTotalPrice)
-                    .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(41, Short.MAX_VALUE))
+                    .addComponent(datePicker1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(114, Short.MAX_VALUE)
                 .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(112, 112, 112))
         );
@@ -192,9 +314,9 @@ public class DailySalesEntry extends javax.swing.JFrame {
                     .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtItemName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(20, 20, 20)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(datePicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -261,7 +383,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 950, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -302,7 +424,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
                 .addGap(22, 22, 22)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addGap(28, 28, 28)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnUpdate)
@@ -327,35 +449,244 @@ public class DailySalesEntry extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        //ui.dashboard.BackButton backButton = new ui.dashboard.BackButton ();
-        //backButton.navigateBasedOnRole();
-        //this.dispose();
+        new MainMenu().setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnBackActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        
+        String salesId = textSearch.getText();
+        DailySales sale = salesManager.findSalesById(salesId);
+
+        if (sale != null) {
+            txtSaleId1.setText(sale.getSalesId());
+            txtItemId.setText(sale.getItemId());
+            txtItemName.setText(sale.getItemName());
+            txtQtySold.setText(String.valueOf(sale.getQuantitySold()));
+            txtTotalPrice.setText(String.valueOf(sale.getTotalPrice()));
+
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                Date parsedDate = sdf.parse(sale.getDate());
+
+                // Convert java.util.Date → java.time.LocalDate
+                Instant instant = parsedDate.toInstant();
+                ZoneId zoneId = ZoneId.systemDefault();
+                LocalDate localDate = instant.atZone(zoneId).toLocalDate();
+
+                datePicker1.setDate(localDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Sales record not found!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnSearchActionPerformed
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         
-        
+        try {
+            String saleId = txtSaleId1.getText().trim();
+            String itemId = txtItemId.getText().trim();
+            String qtyText = txtQtySold.getText().trim();
+            String priceText = txtTotalPrice.getText().trim();
+            LocalDate localDate = datePicker1.getDate(); 
+            Date dateObj = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            // validation
+            if (saleId.isEmpty() || itemId.isEmpty() || qtyText.isEmpty() || priceText.isEmpty() || dateObj == null) {
+                JOptionPane.showMessageDialog(this, "All fields must be filled!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (salesManager.findSalesById(saleId) != null) {
+                JOptionPane.showMessageDialog(this, "Sales ID already exists!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int qtyToSell = Integer.parseInt(qtyText);
+            double totalPrice = Double.parseDouble(priceText);
+
+            if (qtyToSell <= 0) {
+                JOptionPane.showMessageDialog(this, "Quantity must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (totalPrice <= 0) {
+                JOptionPane.showMessageDialog(this, "Total price must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Item selectedItem = findItemById(itemId);
+            if (selectedItem == null) {
+                JOptionPane.showMessageDialog(this, "Invalid Item ID!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (qtyToSell > selectedItem.getStockQuantity()) {
+                JOptionPane.showMessageDialog(this, "Not enough stock!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // create new record
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(dateObj);
+
+            DailySales sale = new DailySales(
+                saleId,
+                selectedItem.getItemId(),
+                selectedItem.getItemName(),
+                date,
+                qtyToSell,
+                totalPrice
+            );
+
+            if (salesManager.addSales(sale)) {
+                selectedItem.setStockQuantity(selectedItem.getStockQuantity() - qtyToSell);
+                saveItemsToFile();
+                JOptionPane.showMessageDialog(this, "Sale added successfully!");
+                clearFields();
+                refreshTable();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add sale!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Quantity and Price must be valid numbers!", "Format Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        try {
+            String saleId = txtSaleId1.getText().trim();
+            String itemId = txtItemId.getText().trim();
+            String qtyText = txtQtySold.getText().trim();
+            String priceText = txtTotalPrice.getText().trim();
+            LocalDate localDate = datePicker1.getDate(); // this returns LocalDate
+            Date dateObj = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
+            // validation
+            if (saleId.isEmpty() || itemId.isEmpty() || qtyText.isEmpty() || priceText.isEmpty() || dateObj == null) {
+                JOptionPane.showMessageDialog(this, "All fields must be filled!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            DailySales oldSale = salesManager.findSalesById(saleId);
+            if (oldSale == null) {
+                JOptionPane.showMessageDialog(this, "Sales record not found!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int oldQtySold = oldSale.getQuantitySold();
+            int newQtySold = Integer.parseInt(qtyText);
+            double totalPrice = Double.parseDouble(priceText);
+
+            if (newQtySold <= 0) {
+                JOptionPane.showMessageDialog(this, "Quantity must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (totalPrice <= 0) {
+                JOptionPane.showMessageDialog(this, "Total price must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Item item = findItemById(itemId);
+            if (item == null) {
+                JOptionPane.showMessageDialog(this, "Invalid Item ID!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // check stock movement/changes
+            int newStock = item.getStockQuantity() + oldQtySold - newQtySold;
+            if (newStock < 0) {
+                JOptionPane.showMessageDialog(this, "Not enough stock after update!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // update
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(dateObj);
+
+            DailySales newSale = new DailySales(
+                saleId,
+                itemId,
+                txtItemName.getText(),
+                date,
+                newQtySold,
+                totalPrice
+            );
+
+            if (salesManager.updateSales(newSale)) {
+                item.setStockQuantity(newStock);
+                saveItemsToFile();
+                JOptionPane.showMessageDialog(this, "Sale updated successfully!");
+                clearFields();
+                refreshTable();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update sale!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Quantity and Price must be valid numbers!", "Format Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String salesId = textSearch.getText().trim();
 
+        if (salesId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a Sales ID to delete.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        DailySales sale = salesManager.findSalesById(salesId);
+        if (sale == null) {
+            JOptionPane.showMessageDialog(this, "Sales record not found!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this sale?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            
+            Item item = findItemById(sale.getItemId());
+            if (item != null) {
+                item.setStockQuantity(item.getStockQuantity() + sale.getQuantitySold());
+                saveItemsToFile(); 
+            }
+
+            if (salesManager.deleteSales(salesId)) {
+                JOptionPane.showMessageDialog(this, "Sale deleted successfully!");
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete sale!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            refreshTable();
+        }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
-
+        clearFields();
     }//GEN-LAST:event_btnClearActionPerformed
 
     private void txtSaleId1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSaleId1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtSaleId1ActionPerformed
+
+    private void txtItemIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtItemIdActionPerformed
+       
+    }//GEN-LAST:event_txtItemIdActionPerformed
+
+    private void txtItemIdKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtItemIdKeyReleased
+        String selectedItemId = txtItemId.getText().trim();
+    if (!selectedItemId.isEmpty()) {
+        for (Item item : items) {
+            if (item.getItemId().equals(selectedItemId)) {
+                txtItemName.setText(item.getItemName());
+                return;
+            }
+        }
+    }
+    txtItemName.setText("");
+    updateTotalPrice();
+    }//GEN-LAST:event_txtItemIdKeyReleased
+
+    private void txtQtySoldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtQtySoldKeyReleased
+       updateTotalPrice();
+    }//GEN-LAST:event_txtQtySoldKeyReleased
 
     /**
      * @param args the command line arguments
@@ -400,8 +731,8 @@ public class DailySalesEntry extends javax.swing.JFrame {
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
+    private com.github.lgooddatepicker.components.DatePicker datePicker1;
     private javax.swing.JLabel header;
-    private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel21;
@@ -422,4 +753,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
     private javax.swing.JTextField txtSaleId1;
     private javax.swing.JTextField txtTotalPrice;
     // End of variables declaration//GEN-END:variables
+
+
+     
 }
