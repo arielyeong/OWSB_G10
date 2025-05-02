@@ -1,4 +1,4 @@
-S001|BrightTech|0123456789|bright@mail.co|Tech Park, KL
+S001|BrightTech|0123456789|bright@mail.com|Tech Park, KL
 S002|SoundPro|0198765432|sound@mail.com|PJ Electronic City
 S003|GroceryMart|0171122334|grocery@mail.com|Penang Warehouse
 S004|WearWorld|0165566778|wear@mail.com|Melaka Fashion Dist.
