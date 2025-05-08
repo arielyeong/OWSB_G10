@@ -9,11 +9,11 @@ public class Item {
     private String itemName;
     private String itemCategory;
     private String itemUOM;
-    private int itemUnitPrice;
+    private double itemUnitPrice;
     private int stockQuantity;
     private List<String> supplierIds;
 
-    public Item(String itemId, String itemName, String itemCategory, String itemUOM, int itemUnitPrice, int stockQuantity, List<String> supplierIds) {
+    public Item(String itemId, String itemName, String itemCategory, String itemUOM, double itemUnitPrice, int stockQuantity, List<String> supplierIds) {
         this.itemId = itemId;
         this.itemName = itemName;
         this.itemCategory = itemCategory;
@@ -61,11 +61,11 @@ public class Item {
         this.itemUOM = itemUOM;
     }
 
-    public int getItemUnitPrice() {
+    public double getItemUnitPrice() {
         return itemUnitPrice;
     }
 
-    public void setItemUnitPrice(int itemUnitPrice) {
+    public void setItemUnitPrice(double itemUnitPrice) {
         this.itemUnitPrice = itemUnitPrice;
     }
 
@@ -98,7 +98,7 @@ public class Item {
     // --- File handling ---
     public String toFileString() {
         String suppliersJoined = String.join(";", supplierIds);
-        return String.format("%s|%s|%s|%s|%d|%d|%s",
+        return String.format("%s|%s|%s|%s|%.2f|%d|%s",
                 itemId, itemName, itemCategory, itemUOM, itemUnitPrice, stockQuantity, suppliersJoined);
     }
 

@@ -13,7 +13,7 @@ public class ItemManager {
         loadItems();
     }
 
-    private void loadItems() {
+    public void loadItems() {
         try (BufferedReader reader = new BufferedReader(new FileReader(ITEM_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {

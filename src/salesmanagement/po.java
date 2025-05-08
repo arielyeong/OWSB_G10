@@ -5,21 +5,21 @@ package salesmanagement;
  * @author charlotte
  */
 import java.util.Date;
+import java.util.ArrayList;
 
-class hehe {
-    private String po_id;
-    private String item_id;
-    private Date order_date;
-    private Date delivery_date;
-    private String supplier_id;
-    private int sm_id;
-    
-}
 public class po {
-    public static void main(String[] args) {
-        poFrame p = new poFrame();
-        p.setLocationRelativeTo(null); //set frame in center
-        p.setVisible(true);
-    }
+    private String poId;
+    private String prId;
+    private String pmId;
+    private String smId;
+    private String supplierId;
+    private ArrayList<Item> items; 
+    private int itemQuantity;
+    private int totalCost;
+    private String poStatus;
+    private Date createdDate;
+    private Date orderDate;
+    private Date deliveryDate;
+    private Date invoiceDate;
     
 }
