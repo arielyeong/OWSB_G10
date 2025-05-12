@@ -36,9 +36,13 @@ public class DailySalesEntry extends javax.swing.JFrame {
      */
     public DailySalesEntry() {
     initComponents();
+    txtItemName.setEditable(false);
+    txtSaleId1.setEditable(false);
     salesManager = new DailySalesManager();
     loadItemsFromFile();
     refreshTable();
+    refreshItemTable();
+    clearFields();
 }
     
     private void loadItemsFromFile() {
@@ -68,7 +72,41 @@ public class DailySalesEntry extends javax.swing.JFrame {
             data[i][5] = String.valueOf(sale.getTotalPrice());
         }
 
+        jTable3.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+    }
+    
+    private void refreshItemTable() {
+        String[] columnNames = {"Item ID", "Item Name", "Category", "UOM", "Price", "Quantity", "Suppliers"};
+        String[][] data = new String[items.size()][7];
+
+        for (int i = 0; i < items.size(); i++) {
+            Item item = items.get(i);
+            data[i][0] = item.getItemId();
+            data[i][1] = item.getItemName();
+            data[i][2] = item.getItemCategory();
+            data[i][3] = item.getItemUOM();
+            data[i][4] = String.valueOf(item.getItemUnitPrice());
+            data[i][5] = String.valueOf(item.getStockQuantity());
+            data[i][6] = getSuppliersForItem(item.getItemId()); // 🔄
+        }
+
         jTable1.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+    }
+    
+    private String getSuppliersForItem(String itemId) {
+        List<String> supplierIds = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("supplieritem.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && parts[1].equals(itemId)) {
+                    supplierIds.add(parts[0]);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading supplieritem.txt: " + e.getMessage());
+        }
+        return String.join(", ", supplierIds);
     }
     
     private void saveItemsToFile() {
@@ -83,7 +121,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
 }
     
     private void clearFields() {
-        txtSaleId1.setText("");
+         txtSaleId1.setText(generateNextSalesId(salesManager.getAllSales()));
         txtItemId.setText("");
         txtItemName.setText("");
         txtQtySold.setText("");
@@ -91,6 +129,22 @@ public class DailySalesEntry extends javax.swing.JFrame {
         textSearch.setText("");
         datePicker1.setDate(null);
     }
+    
+    private String generateNextSalesId(List<DailySales> currentSales) {
+        int maxId = 0;
+        for (DailySales sale : currentSales) {
+            try {
+                int idNum = Integer.parseInt(sale.getSalesId().replaceAll("\\D", ""));
+                if (idNum > maxId) {
+                    maxId = idNum;
+                }
+            } catch (NumberFormatException e) {
+               
+            }
+        }
+        return String.format("SD%03d", maxId + 1); 
+    }
+
     
     private void updateTotalPrice() {
         try {
@@ -115,7 +169,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
     }
     
     private Item findItemById(String itemId) {
-        for (Item item : items) {   // 你的 items list
+        for (Item item : items) {  
             if (item.getItemId().equals(itemId)) {
                 return item;
             }
@@ -160,6 +214,8 @@ public class DailySalesEntry extends javax.swing.JFrame {
         btnClear = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable3 = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -168,18 +224,18 @@ public class DailySalesEntry extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(200, 224, 235));
         jPanel2.setPreferredSize(new java.awt.Dimension(940, 50));
 
+        btnBack.setText("Back");
         btnBack.setBackground(new java.awt.Color(102, 102, 102));
         btnBack.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
         btnBack.setForeground(new java.awt.Color(255, 255, 255));
-        btnBack.setText("Back");
         btnBack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBackActionPerformed(evt);
             }
         });
 
-        header.setFont(new java.awt.Font("Sitka Text", 1, 24)); // NOI18N
         header.setText("OWSB Purchase Order Management System");
+        header.setFont(new java.awt.Font("Sitka Text", 1, 24)); // NOI18N
         header.setToolTipText("");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -213,34 +269,34 @@ public class DailySalesEntry extends javax.swing.JFrame {
 
         jPanel3.setBackground(new java.awt.Color(200, 224, 235));
 
-        jLabel12.setFont(new java.awt.Font("Segoe UI", 3, 16)); // NOI18N
-        jLabel12.setForeground(new java.awt.Color(0, 0, 204));
         jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel12.setText(" ~ Daily Sales Entry ~");
+        jLabel12.setFont(new java.awt.Font("Segoe UI", 3, 16)); // NOI18N
+        jLabel12.setForeground(new java.awt.Color(0, 0, 204));
 
-        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel21.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel21.setText("Sales ID :");
+        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel22.setText("Quantity Sold :");
+        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel23.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel23.setText("Item ID :");
+        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel24.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel24.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel24.setText("Date :");
+        jLabel24.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel25.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel25.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel25.setText("Total Price :");
+        jLabel25.setText("Total Price (RM) :");
+        jLabel25.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel26.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel26.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel26.setText("Item Name :");
+        jLabel26.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         txtItemId.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -270,7 +326,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(16, 16, 16)
+                .addGap(14, 14, 14)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -280,8 +336,8 @@ public class DailySalesEntry extends javax.swing.JFrame {
                             .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                 .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jLabel25, javax.swing.GroupLayout.Alignment.TRAILING)))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(txtSaleId1, javax.swing.GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
@@ -328,26 +384,26 @@ public class DailySalesEntry extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jLabel1.setFont(new java.awt.Font("Sitka Text", 3, 24)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(0, 51, 255));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Daily Item-wise Sales Management:");
+        jLabel1.setFont(new java.awt.Font("Sitka Text", 3, 24)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(0, 51, 255));
 
-        btnAdd.setText("Add Sales");
+        btnAdd.setText("Add");
         btnAdd.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnAddActionPerformed(evt);
             }
         });
 
-        btnUpdate.setText("Update Sales");
+        btnUpdate.setText("Update");
         btnUpdate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnUpdateActionPerformed(evt);
             }
         });
 
-        btnDelete.setText("Delete Sales");
+        btnDelete.setText("Delete");
         btnDelete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDeleteActionPerformed(evt);
@@ -379,21 +435,40 @@ public class DailySalesEntry extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(jTable1);
 
+        jTable3.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {}
+            },
+            new String [] {
+
+            }
+        ));
+        jScrollPane2.setViewportView(jTable3);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 950, Short.MAX_VALUE)
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 956, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(33, 33, 33)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED))
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(30, 30, 30)))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -423,8 +498,11 @@ public class DailySalesEntry extends javax.swing.JFrame {
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(22, 22, 22)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(28, 28, 28)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnUpdate)
@@ -544,6 +622,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Sale added successfully!");
                 clearFields();
                 refreshTable();
+                refreshItemTable();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to add sale!", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -617,6 +696,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Sale updated successfully!");
                 clearFields();
                 refreshTable();
+                refreshItemTable();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to update sale!", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -655,6 +735,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Failed to delete sale!", "Error", JOptionPane.ERROR_MESSAGE);
             }
             refreshTable();
+            refreshItemTable();
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
@@ -745,7 +826,9 @@ public class DailySalesEntry extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
+    private javax.swing.JTable jTable3;
     private javax.swing.JTextField textSearch;
     private javax.swing.JTextField txtItemId;
     private javax.swing.JTextField txtItemName;

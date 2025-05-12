@@ -31,18 +31,40 @@ public class supplierentry extends javax.swing.JFrame {
 
     public supplierentry() {
         initComponents();
+        txtSupplierId.setEditable(false);
         loadDataFromFiles();
+        clearFields();
         refreshTable();
         refreshItemTable();
     }
 
       private void clearFields() {
-        txtSupplierId.setText("");
+        // Re-fetch the latest supplier list before generating ID
+        suppliers = manager.getAllSuppliers(); 
+        txtSupplierId.setText(generateNextSupplierId(suppliers));
+
         txtSuppName.setText("");
         txtSuppPhone.setText("");
         txtSuppEmail.setText("");
         txtSuppAddress.setText("");
         textSearch.setText("");
+        itemList.clearSelection();
+        btnAdd.setEnabled(true); 
+    }
+      
+    private String generateNextSupplierId(List<Supplier> currentSuppliers) {
+        int maxId = 0;
+        for (Supplier s : currentSuppliers) {
+            try {
+                int idNum = Integer.parseInt(s.getSupplierId().replaceAll("\\D", ""));
+                if (idNum > maxId) {
+                    maxId = idNum;
+                }
+            } catch (NumberFormatException e) {
+       
+            }
+        }
+        return String.format("S%03d", maxId + 1);
     }
 
     private void loadDataFromFiles() {
@@ -161,7 +183,7 @@ public class supplierentry extends javax.swing.JFrame {
             data[i][3] = item.getItemUOM();
             data[i][4] = String.valueOf(item.getItemUnitPrice());
             data[i][5] = String.valueOf(item.getStockQuantity());
-            data[i][6] = getSuppliersForItem(item.getItemId()); // 🔄
+            data[i][6] = getSuppliersForItem(item.getItemId()); 
         }
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
@@ -201,7 +223,7 @@ public class supplierentry extends javax.swing.JFrame {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!line.startsWith(supplierId + ",")) {
-                    updatedLines.add(line);  // Keep only unrelated lines
+                    updatedLines.add(line);  
                 }
             }
         } catch (IOException e) {
@@ -259,6 +281,7 @@ public class supplierentry extends javax.swing.JFrame {
     private void initComponents() {
 
         popupMenu1 = new java.awt.PopupMenu();
+        jRadioButtonMenuItem1 = new javax.swing.JRadioButtonMenuItem();
         jPanel12 = new javax.swing.JPanel();
         jPanel11 = new javax.swing.JPanel();
         btnBack6 = new javax.swing.JButton();
@@ -288,10 +311,14 @@ public class supplierentry extends javax.swing.JFrame {
         jLabel17 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         itemList = new javax.swing.JList<>();
+        clearSelectionBtn = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
 
         popupMenu1.setLabel("popupMenu1");
+
+        jRadioButtonMenuItem1.setSelected(true);
+        jRadioButtonMenuItem1.setText("jRadioButtonMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -404,8 +431,9 @@ public class supplierentry extends javax.swing.JFrame {
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
                             .addGap(14, 14, 14)
                             .addComponent(jLabel11)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(txtSuppPhone, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(txtSuppPhone, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(6, 6, 6)))
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addGap(45, 45, 45)
                         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -508,25 +536,36 @@ public class supplierentry extends javax.swing.JFrame {
 
         jScrollPane3.setViewportView(itemList);
 
+        clearSelectionBtn.setText("Clear");
+        clearSelectionBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearSelectionBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(94, 94, 94)
-                        .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(32, 32, 32)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 348, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(31, Short.MAX_VALUE))
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 345, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(clearSelectionBtn)))
+                .addContainerGap(34, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(clearSelectionBtn))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
                 .addContainerGap())
@@ -692,7 +731,12 @@ public class supplierentry extends javax.swing.JFrame {
 
         // Update item links
         supplier.getItems().clear();
-        List<String> selectedItemIds = itemList.getSelectedValuesList();
+        List<String> selectedItemIds = new ArrayList<>();
+        for (String selected : itemList.getSelectedValuesList()) {
+            String itemId = selected.split(" - ")[0].trim(); // Only the ID
+            selectedItemIds.add(itemId);
+        }
+        
         for (String itemId : selectedItemIds) {
             for (Item item : items) {
                 if (item.getItemId().equals(itemId)) {
@@ -715,24 +759,18 @@ public class supplierentry extends javax.swing.JFrame {
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
-        textSearch.setText("");
-        txtSupplierId.setText("");
-        txtSuppName.setText("");
-        txtSuppPhone.setText("");
-        txtSuppEmail.setText("");
-        txtSuppAddress.setText("");
-        
+        clearFields();
     }//GEN-LAST:event_btnClearActionPerformed
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-        String supplierId = txtSupplierId.getText().trim();
+        String supplierId = generateNextSupplierId(suppliers);
         String name = txtSuppName.getText().trim();
         String phone = txtSuppPhone.getText().trim();
         String email = txtSuppEmail.getText().trim();
         String address = txtSuppAddress.getText().trim();
 
         // validation
-        if (supplierId.isEmpty() || name.isEmpty() || phone.isEmpty() || email.isEmpty() || address.isEmpty()) {
+        if (name.isEmpty() || phone.isEmpty() || email.isEmpty() || address.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all required fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -747,16 +785,11 @@ public class supplierentry extends javax.swing.JFrame {
             return;
         }
 
-        if (manager.findSupplierById(supplierId) != null) {
-            JOptionPane.showMessageDialog(this, "Supplier ID already exists!", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         Supplier supplier = new Supplier(supplierId, name, phone, email, address);
 
         List<String> selectedItemIds = new ArrayList<>();
         for (String entry : itemList.getSelectedValuesList()) {
-            String itemId = entry.split(" - ")[0]; // Only the ID
+            String itemId = entry.split(" - ")[0].trim(); // Only the ID
             selectedItemIds.add(itemId);
 
             for (Item item : items) {
@@ -767,14 +800,12 @@ public class supplierentry extends javax.swing.JFrame {
             }
         }
 
-        // Update both manager and suppliers list
         manager.addSupplier(supplier);
-
-        saveSuppliersToFile(); // now includes the newly added one
         saveSupplierItemLinks(supplierId, selectedItemIds); 
 
         refreshTable();
         refreshItemTable();
+        suppliers = manager.getAllSuppliers(); 
         clearFields();
         JOptionPane.showMessageDialog(this, "Supplier added successfully!");
     }//GEN-LAST:event_btnAddActionPerformed
@@ -805,12 +836,18 @@ public class supplierentry extends javax.swing.JFrame {
 
             // Update JList selections
             loadSupplierItemsFromFile(searchId);
+            
+            btnAdd.setEnabled(false);
 
             System.out.println("Supplier found: " + supplier.getSupplierName());
         } else {
             JOptionPane.showMessageDialog(this, "Supplier not found!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void clearSelectionBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearSelectionBtnActionPerformed
+        itemList.clearSelection();
+    }//GEN-LAST:event_clearSelectionBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -855,6 +892,7 @@ public class supplierentry extends javax.swing.JFrame {
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
+    private javax.swing.JButton clearSelectionBtn;
     private javax.swing.JLabel header6;
     private javax.swing.JList<String> itemList;
     private javax.swing.JLabel jLabel11;
@@ -869,6 +907,7 @@ public class supplierentry extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel12;
     private javax.swing.JPanel jPanel7;
+    private javax.swing.JRadioButtonMenuItem jRadioButtonMenuItem1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

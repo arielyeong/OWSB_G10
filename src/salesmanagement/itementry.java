@@ -26,6 +26,7 @@ public class itementry extends javax.swing.JFrame {
     private final String ITEM_FILE = "item.txt";
     private final String SUPPLIER_FILE = "supplier.txt";
     private ItemManager itemManager;
+   
     
 // File handling methods
     private void loadDataFromFiles() {
@@ -55,7 +56,7 @@ public class itementry extends javax.swing.JFrame {
             // Set supplier list to JList
             DefaultListModel<String> listModel = new DefaultListModel<>();
             for (Supplier s : suppliers) {
-                listModel.addElement(s.getSupplierId());
+                listModel.addElement(s.getSupplierId() + " - " + s.getSupplierName() );
             }
             supplierList.setModel(listModel);
             supplierList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -80,13 +81,30 @@ public class itementry extends javax.swing.JFrame {
 
     
      private void clearFields() {
-       textSearch.setText("");
-        txtItemId.setText("");
+        loadDataFromFiles();
+        textSearch.setText("");
+        txtItemId.setText(generateNextItemId(items));
         txtItemName.setText("");
         txtCategory.setSelectedIndex(0);
         txtUOM.setText("");
         txtUnitPrice.setText("");
         txtStockQuantity.setText("");
+        btnAdd.setEnabled(true); 
+    }
+     
+     private String generateNextItemId(List<Item> currentItems) {
+        int maxId = 0;
+        for (Item i : currentItems) {
+            try {
+                int idNum = Integer.parseInt(i.getItemId().replaceAll("\\D", ""));
+                if (idNum > maxId) {
+                    maxId = idNum;
+                }
+            } catch (NumberFormatException e) {
+                
+            }
+        }
+        return String.format("I%03d", maxId + 1); 
     }
      
      private void refreshTable() {
@@ -100,7 +118,7 @@ public class itementry extends javax.swing.JFrame {
             data[i][1] = item.getItemName();
             data[i][2] = item.getItemCategory();
             data[i][3] = item.getItemUOM();
-            data[i][4] = String.valueOf(item.getItemUnitPrice());
+            data[i][4] = String.format("%.2f", item.getItemUnitPrice());
             data[i][5] = String.valueOf(item.getStockQuantity());
             data[i][6] = getSuppliersForItem(item.getItemId());
         }
@@ -128,7 +146,9 @@ public class itementry extends javax.swing.JFrame {
         initComponents();
         itemManager = new ItemManager();
         loadDataFromFiles(); 
+        txtItemId.setEditable(false);
         refreshTable();
+        clearFields();
     }
     
     private void saveItemSupplierLinks(String itemId, List<String> supplierIds) {
@@ -144,7 +164,7 @@ public class itementry extends javax.swing.JFrame {
     
     private void updateItemSupplierLinks(String itemId, List<String> newSupplierIds) {
         List<String> allLines = new ArrayList<>();
-
+        
         // Read existing lines and skip the ones for the given item
         try (BufferedReader reader = new BufferedReader(new FileReader("supplieritem.txt"))) {
             String line;
@@ -234,6 +254,7 @@ public class itementry extends javax.swing.JFrame {
         jLabel14 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         supplierList = new javax.swing.JList<>();
+        clearBtn = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         btnAdd = new javax.swing.JButton();
@@ -341,7 +362,7 @@ public class itementry extends javax.swing.JFrame {
 
         jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel7.setText("Unit Price :");
+        jLabel7.setText("Unit Price (RM) :");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -368,8 +389,8 @@ public class itementry extends javax.swing.JFrame {
                                 .addContainerGap()
                                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(txtItemName)
@@ -427,27 +448,38 @@ public class itementry extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(supplierList);
 
+        clearBtn.setText("Clear");
+        clearBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGap(99, 99, 99)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(jScrollPane3))
-                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(32, 32, 32)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(28, 28, 28)
+                        .addComponent(clearBtn)))
+                .addGap(56, 56, 56))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(0, 12, Short.MAX_VALUE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(clearBtn))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -525,7 +557,7 @@ public class itementry extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 954, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -614,7 +646,7 @@ public class itementry extends javax.swing.JFrame {
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         try {
-            String id = txtItemId.getText().trim();
+            String id = generateNextItemId(items);
             String name = txtItemName.getText().trim();
             String uom = txtUOM.getText().trim();
             String priceText = txtUnitPrice.getText().trim();
@@ -644,7 +676,12 @@ public class itementry extends javax.swing.JFrame {
                 return;
             }
 
-            List<String> selectedSupplierIds = supplierList.getSelectedValuesList();
+            List<String> selectedSupplierIds = new ArrayList<>();
+            for (String selected : supplierList.getSelectedValuesList()) {
+                String supplierId = selected.split(" - ")[0];
+                selectedSupplierIds.add(supplierId);
+            }
+            
             if (selectedSupplierIds.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please select at least one supplier.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -654,7 +691,7 @@ public class itementry extends javax.swing.JFrame {
                 id, name,
                 txtCategory.getSelectedItem().toString(),
                 uom,
-                (int) unitPrice,
+                unitPrice,
                 stockQty,
                 selectedSupplierIds
             );
@@ -713,7 +750,12 @@ public class itementry extends javax.swing.JFrame {
                 return;
             }
 
-            List<String> selectedSupplierIds = supplierList.getSelectedValuesList();
+            List<String> selectedSupplierIds = new ArrayList<>();
+            for (String selected : supplierList.getSelectedValuesList()) {
+                String supplierId = selected.split(" - ")[0]; // extract ID
+                selectedSupplierIds.add(supplierId);
+            }
+            
             if (selectedSupplierIds.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please select at least one supplier.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -810,12 +852,17 @@ public class itementry extends javax.swing.JFrame {
             supplierNames.setLength(supplierNames.length() - 2); // remove trailing comma
         }
         
+        btnAdd.setEnabled(false);
 
     } else {
         JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
     }
     
     }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
+        supplierList.clearSelection();
+    }//GEN-LAST:event_clearBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -860,6 +907,7 @@ public class itementry extends javax.swing.JFrame {
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
+    private javax.swing.JButton clearBtn;
     private javax.swing.JLabel header;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel12;

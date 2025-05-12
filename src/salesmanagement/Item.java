@@ -95,7 +95,6 @@ public class Item {
         supplierIds.remove(supplierId);
     }
 
-    // --- File handling ---
     public String toFileString() {
         String suppliersJoined = String.join(";", supplierIds);
         return String.format("%s|%s|%s|%s|%.2f|%d|%s",
@@ -109,7 +108,7 @@ public class Item {
             supplierList = Arrays.asList(parts[6].split(";"));
         }
         return new Item(parts[0], parts[1], parts[2], parts[3],
-                Integer.parseInt(parts[4]), Integer.parseInt(parts[5]), supplierList);
+                Double.parseDouble(parts[4]), Integer.parseInt(parts[5]), supplierList);
     }
 
     public static void main(String[] args) {
