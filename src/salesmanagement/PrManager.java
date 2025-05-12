@@ -23,115 +23,141 @@ import salesmanagement.pr.PrItem;
  * @author charlotte
  */
 public class PrManager {
-    private List<pr> prList;
+    private List<pr> prList = new ArrayList<>();
     public static final String FILE_PATH = "pr.txt";
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
+    ItemManager iM = new ItemManager();
 
     public PrManager() {
         prList = new ArrayList<>();
+        loadPr();
     }
     
-    public static List<pr> loadPrFromFile() {
-        List<pr> prList = new ArrayList<>();
-        ItemManager im = new ItemManager();
-        im.loadItems(); // Load all items once
-        List<Item> allItems = im.getAllItems();
+    public void loadPr() {
+        prList.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
-            String prId = "", smId = "", supplierId = "", prStatus = "";
-            LocalDate createdDate = null, requiredDate = null;
-            List<PrItem> prItems = new ArrayList<>();
-            int totalCost = 0;
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("-----")) {
-                    pr newPr = new pr(prId, smId, supplierId, prItems, prStatus, createdDate, requiredDate);
-                    prList.add(newPr);
-
-                    // Reset for next PR
-                    prId = smId = supplierId = prStatus = "";
-                    createdDate = requiredDate = null;
-                    totalCost = 0;
-                    prItems = new ArrayList<>();
-                } else {
-                    String[] parts = line.split("=", 2);
-                    if (parts.length == 2) {
-                        String key = parts[0].trim();
-                        String value = parts[1].trim();
-
-                        switch (key) {
-                            case "prId" -> prId = value;
-                            case "smId" -> smId = value;
-                            case "supplierId" -> supplierId = value;
-                            case "prStatus" -> prStatus = value;
-                            case "createdDate" -> createdDate = LocalDate.parse(value);
-                            case "requiredDate" -> requiredDate = LocalDate.parse(value);
-                            case "totalCost" -> totalCost = Integer.parseInt(value);
-
-                            case "items" -> {
-                                // Expected format: [I001:3,I002:1]
-                                value = value.replace("[", "").replace("]", "");
-                                String[] itemPairs = value.split(",");
-                                for (String pair : itemPairs) {
-                                    String[] itemData = pair.split(":");
-                                    if (itemData.length == 2) {
-                                        String itemId = itemData[0].trim();
-                                        int qty = Integer.parseInt(itemData[1].trim());
-
-                                        // Find matching item from allItems
-                                        for (Item item : allItems) {
-                                            if (item.getItemId().equals(itemId)) {
-                                                prItems.add(new PrItem(item, qty));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        String line;
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (!line.isEmpty()) {  // Skip empty lines
+                pr prObject = pr.fromFileString(line, iM.getAllItems());
+                prList.add(prObject);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+    } catch (IOException e) {
+        System.out.println("Error loading PRs: " + e.getMessage());
+    }
+}
+    
+    
+    public List<pr> getAllPr() {
         return prList;
     }
-
-    public static DefaultTableModel PrListToModel(List<pr> prList) {
-        String[] columns = {"PR ID", "Staff ID", "Supplier ID", "Items", "Status", "Created Date", "Required Date"};
-        DefaultTableModel model = new DefaultTableModel(columns, 0);
-
-        for (pr p : prList) {
-            StringBuilder itemString = new StringBuilder();
-            for (PrItem prItem : p.getItems()) {
-                itemString.append("[item=")
-                          .append(prItem.getItem().getItemId())
-                          .append(", quantity=")
-                          .append(prItem.getQuantity())
-                          .append(", totalcost=")
-                          .append(String.format("%.2f", prItem.getItem().getItemUnitPrice() * prItem.getQuantity()))
-                          .append("]");
-            }
-
-            model.addRow(new Object[]{
-                p.getPrId(),
-                p.getSmId(),
-                p.getSupplierId(),
-                itemString.toString(),
-                p.getPrStatus(),
-                p.getCreatedDate().format(pr.DATE_FORMATTER),
-                p.getRequiredDate().format(pr.DATE_FORMATTER)
-            });
+    
+    public pr getPr(int index) {
+        if (index >= 0 && index < prList.size()) {
+            return prList.get(index);
         }
-
-        return model;
+        return null;
     }
+     
+//    public static List<pr> loadPrFromFile() {
+//        List<pr> prList = new ArrayList<>();
+//        ItemManager im = new ItemManager();
+//        im.loadItems(); // Load all items once
+//        List<Item> allItems = im.getAllItems();
+//        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+//            
+//            List<PrItem> prItems = new ArrayList<>();
+//            int totalCost = 0;
+//
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                if (line.equals("-----")) {
+//                    pr newPr = new pr(prId, smId, supplierId, prItems, prStatus, createdDate, requiredDate);
+//                    prList.add(newPr);
+//
+//                    // Reset for next PR
+//                    prId = smId = supplierId = prStatus = "";
+//                    createdDate = requiredDate = null;
+//                    totalCost = 0;
+//                    prItems = new ArrayList<>();
+//                } else {
+//                    String[] parts = line.split("=", 2);
+//                    if (parts.length == 2) {
+//                        String key = parts[0].trim();
+//                        String value = parts[1].trim();
+//
+//                        switch (key) {
+//                            case "prId" -> prId = value;
+//                            case "smId" -> smId = value;
+//                            case "supplierId" -> supplierId = value;
+//                            case "prStatus" -> prStatus = value;
+//                            case "createdDate" -> createdDate = LocalDate.parse(value);
+//                            case "requiredDate" -> requiredDate = LocalDate.parse(value);
+//                            case "totalCost" -> totalCost = Integer.parseInt(value);
+//
+//                            case "items" -> {
+//                                // Expected format: [I001:3,I002:1]
+//                                value = value.replace("[", "").replace("]", "");
+//                                String[] itemPairs = value.split(",");
+//                                for (String pair : itemPairs) {
+//                                    String[] itemData = pair.split(":");
+//                                    if (itemData.length == 2) {
+//                                        String itemId = itemData[0].trim();
+//                                        int qty = Integer.parseInt(itemData[1].trim());
+//
+//                                        // Find matching item from allItems
+//                                        for (Item item : allItems) {
+//                                            if (item.getItemId().equals(itemId)) {
+//                                                prItems.add(new PrItem(item, qty));
+//                                                break;
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return prList;
+//    }
+
+//    public static DefaultTableModel PrListToModel(List<pr> prList) {
+//        String[] columns = {"PR ID", "Staff ID", "Supplier ID", "Items", "Status", "Created Date", "Required Date"};
+//        DefaultTableModel model = new DefaultTableModel(columns, 0);
+//
+//        for (pr p : prList) {
+//            StringBuilder itemString = new StringBuilder();
+//            for (PrItem prItem : p.getItems()) {
+//                itemString.append("[item=")
+//                          .append(prItem.getItem().getItemId())
+//                          .append(", quantity=")
+//                          .append(prItem.getQuantity())
+//                          .append(", totalcost=")
+//                          .append(String.format("%.2f", prItem.getItem().getItemUnitPrice() * prItem.getQuantity()))
+//                          .append("]");
+//            }
+//
+//            model.addRow(new Object[]{
+//                p.getPrId(),
+//                p.getSmId(),
+//                p.getSupplierId(),
+//                itemString.toString(),
+//                p.getPrStatus(),
+//                p.getCreatedDate().format(pr.DATE_FORMATTER),
+//                p.getRequiredDate().format(pr.DATE_FORMATTER)
+//            });
+//        }
+//
+//        return model;
+//    }
 
 
-    public static pr findPrById(String prId) {
-    List<pr> prList = loadPrFromFile();
+    public pr findPrById(String prId) {
     for (pr pr : prList) {
         if (pr.getPrId().equals(prId)) {
             return pr;
@@ -140,28 +166,63 @@ public class PrManager {
     return null;
 }
     
-private void savePr() {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-        for (pr pr : prList) {
-            writer.write(pr.toFileString()); 
-            writer.newLine();
+    public void savePr() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            for (pr pr : prList) {
+                writer.write(pr.toFileString()); 
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving PRs: " + e.getMessage());
         }
-    } catch (IOException e) {
-        System.out.println("Error saving PRs: " + e.getMessage());
     }
-}
 
-// Method to add a PR
-public boolean addPr(pr pr) {
-    if (findPrById(pr.getPrId()) != null) { // if Duplicate PR ID found
-        return false; 
+    public boolean deletePr(String prId) {
+            pr pr = findPrById(prId);
+            if (pr != null) {
+                prList.remove(pr);
+                savePr();
+                return true;
+            }
+            return false;
+        }
+
+    // Method to add a PR
+    public boolean addPr(pr pr) {
+        if (findPrById(pr.getPrId()) != null) { // if Duplicate PR ID found
+            return false; 
+        }
+        prList.add(pr);  
+        savePr();        
+        return true;
     }
-    prList.add(pr);  
-    savePr();        
-    return true;
-}
 
+    public boolean updatePr(pr updatedPr) {
+        for (int i = 0; i < prList.size(); i++) {
+            pr existPr = prList.get(i);
+            if (existPr.getPrId().equals(updatedPr.getPrId())) {
+                existPr.setSmId(updatedPr.getSmId());
+                existPr.setSupplierId(updatedPr.getSupplierId());
+                existPr.setItems(new ArrayList<>(updatedPr.getItems()));
+                existPr.setPrStatus(updatedPr.getPrStatus());
+                existPr.setCreatedDate(updatedPr.getCreatedDate());
+                existPr.setRequiredDate(updatedPr.getRequiredDate());
+                savePr(); 
+                return true;
+            }
+        }
+        return false; // No matching PR found
+    }
 
+    public String generateNewPrId() {
+        int maxId = prList.stream()
+            .map(p -> p.getPrId().replaceAll("\\D+", "")) // Remove non-digits
+            .filter(s -> !s.isEmpty())
+            .mapToInt(Integer::parseInt)
+            .max()
+            .orElse(0);
+        return String.format("PR%03d", maxId + 1);
+    }
 
     
 //    public static void writeFile(Object obj) {

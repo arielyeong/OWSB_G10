@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 /**
  *
  * @author charlotte
@@ -19,7 +17,7 @@ public class pr {
     private LocalDate createdDate;
     private LocalDate requiredDate;
     
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public pr(String prId, String smId, String supplierId, List<PrItem> items, String prStatus, LocalDate createdDate, LocalDate requiredDate) {
         this.prId = prId;
@@ -30,10 +28,6 @@ public class pr {
         this.createdDate = createdDate;
         this.requiredDate = requiredDate;
     }
-
-
-    
-    
 
     public String getPrId() {
         return prId;
@@ -70,7 +64,7 @@ public class pr {
     public double getTotalCost() {
         int totalCost = 0;
         for (PrItem prItem : items) {
-            totalCost += prItem.getItem().getItemUnitPrice() * prItem.getQuantity();
+            totalCost += prItem.getCost();
         }
         return totalCost;
     }
@@ -123,80 +117,96 @@ public class pr {
         public int getQuantity() {
             return quantity;
         }
-//
-//        public int getCost() {
-//            return item.getItemUnitPrice() * quantity;
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return item.getItemId() + ":" + quantity;
-//        }
-    }
-    
-    private String itemsToFileString() {
-        StringBuilder sb = new StringBuilder();
-        for (PrItem prItem : items) {
-            sb.append(String.format("[item=%s, quantity=%d, totalcost=%.2f]",
-                prItem.getItem().getItemId(),
-                prItem.getQuantity(),
-                prItem.getItem().getItemUnitPrice() * prItem.getQuantity()
-            ));
+
+        public double getCost() {
+            return item.getItemUnitPrice() * quantity;
         }
-        return sb.toString();
+
+        @Override
+        public String toString() {
+            return item.getItemId() + "," + quantity;
+        }
     }
 
-    
     public String toFileString() {
-        return String.format("%s|%s|%s|%s|%s|%s",
+        StringBuilder itemStr = new StringBuilder("[");
+        for (int i = 0; i < items.size(); i++) {
+            PrItem pi = items.get(i);
+            itemStr.append(pi.getItem().getItemId())
+                   .append(",")
+                   .append(pi.getQuantity());
+            if (i < items.size() - 1) {
+                itemStr.append(";");
+            }
+        }
+        itemStr.append("]");
+
+        return String.format("%s|%s|%s|%s|%s|%s|%s",
             prId,
-            smId,
-            supplierId,
-            itemsToFileString(),
+            smId != null ? smId : "null",
+            supplierId != null ? supplierId : "null",
+            itemStr.toString(),
             prStatus,
             createdDate.format(DATE_FORMATTER),
             requiredDate.format(DATE_FORMATTER));
     }
+
+
     
     public static pr fromFileString(String fileString, List<Item> allItems) {
-        String[] parts = fileString.split("\\|");
-        if (parts.length < 7) {
-            throw new IllegalArgumentException("Invalid PR format: " + fileString);
-        }
-
-        String prId = parts[0];
-        String smId = parts[1];
-        String supplierId = parts[2];
-        String itemSection = parts[3];
-        String prStatus = parts[4];
-        LocalDate createdDate = LocalDate.parse(parts[5], DATE_FORMATTER);
-        LocalDate requiredDate = LocalDate.parse(parts[6], DATE_FORMATTER);
-
-        List<PrItem> prItems = new ArrayList<>();
-
-        // Split the item section into blocks like: [item=..., quantity=..., ...]
-        Pattern itemPattern = Pattern.compile("\\[item=([^,]+),\\s*quantity=(\\d+),\\s*totalcost=([\\d.]+)]");
-        Matcher matcher = itemPattern.matcher(itemSection);
-
-        while (matcher.find()) {
-            String itemId = matcher.group(1);
-            int quantity = Integer.parseInt(matcher.group(2));
-
-            Item matchedItem = allItems.stream()
-                .filter(item -> item.getItemId().equals(itemId))
-                .findFirst()
-                .orElse(null);
-
-            if (matchedItem != null) {
-                prItems.add(new PrItem(matchedItem, quantity));
+        try {
+            String[] parts = fileString.split("\\|");
+            if (parts.length != 7) {
+                throw new IllegalArgumentException("Expected 7 parts but got " + parts.length);
             }
-        }
 
-        return new pr(prId, smId, supplierId, prItems, prStatus, createdDate, requiredDate);
+            String prId = parts[0];
+            String smId = parts[1];
+            String supplierId = "null".equals(parts[2]) ? null : parts[2];
+            String itemSection = parts[3].trim();  // [I001,2;I002,3]
+            String prStatus = parts[4];
+            LocalDate createdDate = LocalDate.parse(parts[5], DATE_FORMATTER);
+            LocalDate requiredDate = LocalDate.parse(parts[6], DATE_FORMATTER);
+
+            List<PrItem> prItems = new ArrayList<>();
+
+            // ✅ Remove brackets and only then split
+            if (itemSection.startsWith("[") && itemSection.endsWith("]")) {
+                itemSection = itemSection.substring(1, itemSection.length() - 1);
+            }
+
+            if (!itemSection.isEmpty()) {
+                String[] itemPairs = itemSection.split(";");
+                for (String pair : itemPairs) {
+                    String[] itemData = pair.trim().split(",");
+                    if (itemData.length == 2) {
+                        String itemId = itemData[0].trim();
+                        int quantity = Integer.parseInt(itemData[1].trim());
+
+                        // Find item by ID from the item list
+                        Item matchedItem = allItems.stream()
+                            .filter(item -> item.getItemId().equals(itemId))
+                            .findFirst()
+                            .orElse(null);
+
+                        if (matchedItem != null) {
+                            prItems.add(new PrItem(matchedItem, quantity));
+                        } else {
+                            System.out.println("Item ID not found: " + itemId);
+                        }
+                    }
+                }
+            }
+
+            return new pr(prId, smId, supplierId, prItems, prStatus, createdDate, requiredDate);
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException(
+                "Failed to parse PR: '" + fileString + "'. Error: " + e.getMessage(), e);
+        }
     }
 
-
-
+    
     public static void main(String[] args) {
         
     }
