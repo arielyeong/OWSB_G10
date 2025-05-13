@@ -9,6 +9,9 @@ import javax.swing.table.DefaultTableModel;
 import salesmanagement.pr.PrItem;
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
+import java.awt.EventQueue;
+import java.awt.event.ActionListener;
+import java.util.Map;
 
 /**
  *
@@ -91,14 +94,22 @@ private boolean suppressSupplierAction = false;
             isUpdatingSupplier = false;
         }
 
-        if (!prM.getAllPr().isEmpty()) {
-            displayPr(0);
-            System.out.println("display pr (from refresh)");
-        } else {
-            clearText();
-            updateItemsForSelectedSupplier();
-            System.out.println("update item (from refresh)");
-        }
+//        if (!prM.getAllPr().isEmpty()) {
+//            displayPr(0);
+//            System.out.println("display pr (from refresh)");
+//        } else {
+//            clearText();
+//            updateItemsForSelectedSupplier();
+//            System.out.println("update item (from refresh)");
+//        }
+        EventQueue.invokeLater(() -> {
+                if (!prM.getAllPr().isEmpty()) {
+                    displayPr(0);
+                } else {
+                    clearText();
+                }
+            });
+        
     }
     
     private void setFormEditable(boolean edit) {
@@ -144,17 +155,8 @@ private boolean suppressSupplierAction = false;
                 tSalesManager.setSelectedItem(currentPr.getSmId());
             }
             if (currentPr.getSupplierId() != null) {
-            String supplierText = getSupplierDropdownText(currentPr.getSupplierId());
-            if (supplierText != null) {
-                boolean shouldUpdate = !supplierText.equals(tSupplier.getSelectedItem());
-                if (shouldUpdate) {
-                    suppressSupplierAction = true;
-                    tSupplier.setSelectedItem(supplierText);
-                    suppressSupplierAction = false;
-                    System.out.println("tSupplier updated: " + supplierText);
-                }
+                updateSupplierSelection(currentPr.getSupplierId());
             }
-        }
 
 
             // Update items table
@@ -219,6 +221,25 @@ private boolean suppressSupplierAction = false;
         System.out.println("initialise table");
     }
     
+    private void updateSupplierSelection(String supplierId) {
+        String supplierText = getSupplierDropdownText(supplierId);
+        if (supplierText != null && !supplierText.equals(tSupplier.getSelectedItem())) {
+            // Remove action listener temporarily
+            ActionListener[] listeners = tSupplier.getActionListeners();
+            for (ActionListener listener : listeners) {
+                tSupplier.removeActionListener(listener);
+            }
+
+            tSupplier.setSelectedItem(supplierText);
+
+            // Re-add listeners
+            for (ActionListener listener : listeners) {
+                tSupplier.addActionListener(listener);
+            }
+            System.out.println("tSupplier updated: " + supplierText);
+        }
+    }
+    
     private void updateSelectedItemsFromTable(DefaultTableModel model) {
         selectedItems.clear(); 
         for (int i = 0; i < model.getRowCount(); i++) {
@@ -275,16 +296,21 @@ private boolean suppressSupplierAction = false;
 
                 for (String supplierId : suppliers) {
                     supplierId = supplierId.trim();
-                    if (!supplierId.equals("NONE")) {
-                        if (sM.findSupplierById(supplierId) != null) {
-                            supplierItemsMap.computeIfAbsent(supplierId, k -> new ArrayList<>())
-                                          .add(item);
+                    if (!supplierId.equals("NONE") && sM.findSupplierById(supplierId) != null) {
+                        List<Item> supplierList = supplierItemsMap.computeIfAbsent(supplierId, k -> new ArrayList<>());
+                        // Check by item ID to avoid duplicates
+                        boolean exists = supplierList.stream()
+                            .anyMatch(i -> i.getItemId().equals(item.getItemId()));
+                        if (!exists) {
+                            supplierList.add(item);
                         }
                     }
                 }
             }
         }
     }
+
+
      
      
     private String getSupplierDropdownText(String supplierId) {
