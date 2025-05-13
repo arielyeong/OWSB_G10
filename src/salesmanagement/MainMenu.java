@@ -30,11 +30,11 @@ public class MainMenu extends JFrame {
         add(btnSales);
         
         JButton btnPr = new JButton("PR Entry");
-        btnPr.setBounds(150, 200, 200, 40);
+        btnPr.setBounds(150, 250, 200, 40);
         add(btnPr);
 
         JButton btnExit = new JButton("Exit");
-        btnExit.setBounds(150, 260, 200, 40);
+        btnExit.setBounds(150, 300, 200, 40);
         add(btnExit);
 
         // Action Listeners
