@@ -14,7 +14,16 @@ public class DailySalesManager {
     private final String SALES_FILE = "dailysales.txt";
 
     public DailySalesManager() {
+        salesList = new ArrayList<>();
         loadSalesFromFile();
+    }
+    
+    /**
+     *
+     * @return
+     */
+    public List<DailySales> getAllSales() {
+        return salesList;
     }
 
     private void loadSalesFromFile() {
@@ -79,7 +88,7 @@ public class DailySalesManager {
         return null;
     }
 
-    public List<DailySales> getAllSales() {
-        return new ArrayList<>(salesList);
-    }
+
+
+    
 }
