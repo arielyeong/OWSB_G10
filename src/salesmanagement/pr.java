@@ -151,8 +151,6 @@ public class pr {
             requiredDate.format(DATE_FORMATTER));
     }
 
-
-    
     public static pr fromFileString(String fileString, List<Item> allItems) {
         try {
             String[] parts = fileString.split("\\|");

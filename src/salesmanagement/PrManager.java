@@ -216,7 +216,7 @@ public class PrManager {
 
     public String generateNewPrId() {
         int maxId = prList.stream()
-            .map(p -> p.getPrId().replaceAll("\\D+", "")) // Remove non-digits
+            .map(p -> p.getPrId().replaceAll("\\D+", ""))
             .filter(s -> !s.isEmpty())
             .mapToInt(Integer::parseInt)
             .max()
