@@ -1,5 +1,5 @@
 I001|LED TV 42"|Electronic|Unit|1500.00|45|S003
 I002|Basmati Rice 5kg|Groceries|Bag|30.00|80|S003
-I004|Men's Jeans|Clothing|Pc|80.00|50|S004
 I003|Laptop Bag|Other|Pc|60.00|35|S001;S003
+I004|Men's Jeans|Clothing|Pc|80.00|50|S004
 I005|T-Shirt|Clothing|Pc|40.00|60|S004

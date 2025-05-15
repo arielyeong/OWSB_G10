@@ -8,6 +8,7 @@ public class DailySales {
     private int quantitySold;
     private double totalPrice;
 
+
     // Constructor
     public DailySales(String salesId, String itemId, String itemName, String date, int quantitySold, double totalPrice) {
         this.salesId = salesId;
@@ -66,6 +67,10 @@ public class DailySales {
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
+
+
+    
+    
 
     // Convert to file format
     public String toFileString() {
