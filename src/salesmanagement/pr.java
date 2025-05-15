@@ -12,23 +12,23 @@ public class pr {
     private String prId;
     private String smId;
     private String supplierId;
-    private List<PrItem> items;
-    private String prStatus;
+    private PrItem item;
+    private String prStatus; //DRAFT, SUBMITTED, APPROVED, REJECTED
     private LocalDate createdDate;
     private LocalDate requiredDate;
     
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public pr(String prId, String smId, String supplierId, List<PrItem> items, String prStatus, LocalDate createdDate, LocalDate requiredDate) {
+    public pr(String prId, String smId, String supplierId, PrItem item, String prStatus, LocalDate createdDate, LocalDate requiredDate) {
         this.prId = prId;
         this.smId = smId;
         this.supplierId = supplierId;
-        this.items = items;
+        this.item = item;
         this.prStatus = prStatus;
         this.createdDate = createdDate;
         this.requiredDate = requiredDate;
     }
-
+    
     public String getPrId() {
         return prId;
     }
@@ -53,21 +53,18 @@ public class pr {
         this.supplierId = supplierId;
     }
 
-    public List<PrItem> getItems() {
-        return items;
+    public PrItem getItem() {
+        return item;
     }
 
-    public void setItems(ArrayList<PrItem> items) {
-        this.items = items;
+    public void setItem(PrItem item) {
+        this.item = item;
     }
 
     public double getTotalCost() {
-        int totalCost = 0;
-        for (PrItem prItem : items) {
-            totalCost += prItem.getCost();
-        }
-        return totalCost;
+        return item != null ? item.getCost() : 0.0;
     }
+
 
     public String getPrStatus() {
         return prStatus;
@@ -129,27 +126,17 @@ public class pr {
     }
 
     public String toFileString() {
-        StringBuilder itemStr = new StringBuilder("[");
-        for (int i = 0; i < items.size(); i++) {
-            PrItem pi = items.get(i);
-            itemStr.append(pi.getItem().getItemId())
-                   .append(",")
-                   .append(pi.getQuantity());
-            if (i < items.size() - 1) {
-                itemStr.append(";");
-            }
-        }
-        itemStr.append("]");
-
+        String itemStr = "[" + item.getItem().getItemId() + "," + item.getQuantity() + "]";
         return String.format("%s|%s|%s|%s|%s|%s|%s",
             prId,
             smId != null ? smId : "null",
             supplierId != null ? supplierId : "null",
-            itemStr.toString(),
+            itemStr,
             prStatus,
             createdDate.format(DATE_FORMATTER),
             requiredDate.format(DATE_FORMATTER));
     }
+
 
     public static pr fromFileString(String fileString, List<Item> allItems) {
         try {
@@ -161,50 +148,48 @@ public class pr {
             String prId = parts[0];
             String smId = parts[1];
             String supplierId = "null".equals(parts[2]) ? null : parts[2];
-            String itemSection = parts[3].trim();  // [I001,2;I002,3]
+            String itemSection = parts[3].trim();  // [I001,2]
             String prStatus = parts[4];
             LocalDate createdDate = LocalDate.parse(parts[5], DATE_FORMATTER);
             LocalDate requiredDate = LocalDate.parse(parts[6], DATE_FORMATTER);
 
-            List<PrItem> prItems = new ArrayList<>();
+            if (requiredDate.isBefore(createdDate)) {
+                throw new IllegalArgumentException("Required date cannot be before created date.");
+            }
 
-            // ✅ Remove brackets and only then split
+            PrItem prItem = null;
+
+            // ✅ Remove brackets
             if (itemSection.startsWith("[") && itemSection.endsWith("]")) {
                 itemSection = itemSection.substring(1, itemSection.length() - 1);
             }
 
             if (!itemSection.isEmpty()) {
-                String[] itemPairs = itemSection.split(";");
-                for (String pair : itemPairs) {
-                    String[] itemData = pair.trim().split(",");
-                    if (itemData.length == 2) {
-                        String itemId = itemData[0].trim();
-                        int quantity = Integer.parseInt(itemData[1].trim());
+                String[] itemData = itemSection.split(",");
+                if (itemData.length == 2) {
+                    String itemId = itemData[0].trim();
+                    int quantity = Integer.parseInt(itemData[1].trim());
 
-                        // Find item by ID from the item list
-                        Item matchedItem = allItems.stream()
+                    Item matchedItem = allItems.stream()
                             .filter(item -> item.getItemId().equals(itemId))
                             .findFirst()
                             .orElse(null);
 
-                        if (matchedItem != null) {
-                            prItems.add(new PrItem(matchedItem, quantity));
-                        } else {
-                            System.out.println("Item ID not found: " + itemId);
-                        }
+                    if (matchedItem != null) {
+                        prItem = new PrItem(matchedItem, quantity);
+                    } else {
+                        System.out.println("Item ID not found: " + itemId);
                     }
                 }
             }
 
-            return new pr(prId, smId, supplierId, prItems, prStatus, createdDate, requiredDate);
+            return new pr(prId, smId, supplierId, prItem, prStatus, createdDate, requiredDate);
 
         } catch (Exception e) {
-            throw new IllegalArgumentException(
-                "Failed to parse PR: '" + fileString + "'. Error: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to parse PR: '" + fileString + "'. Error: " + e.getMessage(), e);
         }
     }
 
-    
     public static void main(String[] args) {
         
     }
