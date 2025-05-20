@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -34,9 +35,13 @@ public class prFrame extends javax.swing.JFrame {
     private SupplierManager sM = new SupplierManager();
     
     public static final String PR_FILE = "pr.txt";
+    public static final String[] SM_STATUS = {"DRAFT","SUBMITTED"};
+    public static final String[] PM_STATUS = {"DRAFT","SUBMITTED","APPROVED","REJECTED"};
+    private String userRole = "SM";
     
     public prFrame() {
         initComponents();
+        updateStatusComboBox(userRole);
         supplierList.setModel(new DefaultListModel<>());
         tCreatedDate.setText(currentDate.toString());
         
@@ -355,8 +360,14 @@ public class prFrame extends javax.swing.JFrame {
         updateTotalCost();
     }
 
-
-
+    // --- STATUS
+    public void updateStatusComboBox(String userRole) {
+        if (userRole.equalsIgnoreCase("SM")) {
+            tPrStatus.setModel(new DefaultComboBoxModel<>(SM_STATUS));
+        } else if (userRole.equalsIgnoreCase("PM")) {
+            tPrStatus.setModel(new DefaultComboBoxModel<>(PM_STATUS));
+        }
+    }
 
     
     /**
