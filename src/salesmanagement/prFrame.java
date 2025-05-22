@@ -168,7 +168,6 @@ public class prFrame extends javax.swing.JFrame {
         if (currentPr.getSupplierId() != null) {
             updateSupplierSelection(currentPr.getSupplierId());
         }
-        System.out.println("PR " + currentPr.getPrId() + " has SM: " + currentPr.getSmId());
     }
 
     
@@ -252,7 +251,6 @@ public class prFrame extends javax.swing.JFrame {
         } else if (newSelection == null && currentSelection != null) {
             tSalesManager.setSelectedItem(null);
         }
-        System.out.println("Updating SM selection from: " + currentSelection + " to: " + smId);
     }
     
     private String getSelectedSalesManagerId() {
@@ -275,7 +273,6 @@ public class prFrame extends javax.swing.JFrame {
             }
         }
         supplierList.clearSelection();
-        System.out.println("Selecting supplier: " + selectedSupplierId);
     }
 
     
@@ -986,7 +983,6 @@ public class prFrame extends javax.swing.JFrame {
 
     private void tSalesManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tSalesManagerActionPerformed
         String selectedId = getSelectedSalesManagerId();
-        System.out.println("Selected SM ID: " + selectedId);
     }//GEN-LAST:event_tSalesManagerActionPerformed
 
     private void clearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearActionPerformed

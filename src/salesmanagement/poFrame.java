@@ -356,7 +356,6 @@ public class poFrame extends javax.swing.JFrame {
         } else if (newSelection == null && currentSelection != null) {
             tSalesManager.setSelectedItem(null);
         }
-        System.out.println("Updating SM selection from: " + currentSelection + " to: " + smId);
     }
     
     private String getSelectedSalesManagerId() {
@@ -412,8 +411,6 @@ public class poFrame extends javax.swing.JFrame {
         } else if (newSelection == null && currentSelection != null) {
             tPurchaseManager.setSelectedItem(null);
         }
-
-        System.out.println("Updating PM selection from: " + currentSelection + " to: " + pmId);
     }
 
     private String getSelectedPurchaseManagerId() {
@@ -1316,7 +1313,6 @@ public class poFrame extends javax.swing.JFrame {
 
     private void tPrIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tPrIdActionPerformed
         String selectedId = getSelectedSalesManagerId();
-        System.out.println("Selected SM ID: " + selectedId);
     }//GEN-LAST:event_tPrIdActionPerformed
 
     private void tSalesManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tSalesManagerActionPerformed
@@ -1325,7 +1321,6 @@ public class poFrame extends javax.swing.JFrame {
 
     private void tPurchaseManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tPurchaseManagerActionPerformed
         String selectedId = getSelectedPurchaseManagerId();
-        System.out.println("Selected PM ID: " + selectedId);
     }//GEN-LAST:event_tPurchaseManagerActionPerformed
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
