@@ -1,0 +1,9 @@
+ADMIN001|adminyx|0123456789|adminyx@gmail.com|12, Jln 3, Taman ABC|yx123|Admin
+SM001|salesmanager1|0129876543|salesmanager@gmail.com|45, Jln 6/D, Taman EFG|sm123|Sales Manager|Putrajaya
+SM002|salesmanager2|0129876500|salesmanager2@gmail.com|45, Jln 6/D, Taman EFG|sm123|Sales Manager|Putrajaya
+SM003|salesmanager3|0129876501|salesmanager3@gmail.com|45, Jln 6/D, Taman EFG|sm123|Sales Manager|Putrajaya
+PM001|purchasemanager1|0124681012|purchasemanager@gmail.com|7, Jln 8, Taman HIJ|pm123|Purchase Manager|1
+PM002|purchasemanager2|0124681012|purchasemanager@gmail.com|7, Jln 8, Taman HIJ|pm123|Purchase Manager|1
+IM001|inventorymanager1|0123579111|inventorymanager@gmail.com|91, Jln 1/K, Taman LMN|im123|Inventory Manager|1
+FM001|financemanager1|0121416182|financemanager@gmail.com|10, Jln 2, Taman OPQ|fm123|Finance Manager
+ADMIN002|testuser|0123987465|test123@gmail.com|123, Jln 4, Taman ABC|test123|Admin

@@ -69,6 +69,15 @@ public class PoManager {
         return null;
     }
     
+    public po findPoByPrId(String prId) {
+        for (po p : poList) {
+            if (p.getPrId().trim().equals(prId.trim())) {
+                return p;
+            }
+        }
+        return null;
+    }
+    
     public void savePo() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (po po: poList) {
@@ -82,6 +91,16 @@ public class PoManager {
 
     public boolean deletePo(String poId) {
         po po = findPoById(poId);
+        if (po != null) {
+            poList.remove(po);
+            savePo();
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean deletePoByPrId(String prId) {
+        po po = findPoByPrId(prId);
         if (po != null) {
             poList.remove(po);
             savePo();
@@ -130,7 +149,7 @@ public class PoManager {
         return String.format("PO%03d", maxId + 1);
     }
     
-    public po createPoFromPr(pr approvedPr, String pmId) {
+    public po createPoFromPr(pr approvedPr) {
         List<pr> approvedPrs = prM.getApprovedPrs();
         boolean isValid = approvedPrs.stream()
             .anyMatch(p -> p.getPrId().equals(approvedPr.getPrId()));
@@ -144,7 +163,7 @@ public class PoManager {
         po newPo = new po(
             newPoId,
             approvedPr.getPrId(),
-            pmId,
+            null,
             approvedPr.getSmId(),
             approvedPr.getSupplierId(),
             prItem, 

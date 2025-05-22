@@ -1,17 +1,20 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package usermanagement;
 
 /**
  *
- * @author charlotte
+ * @author yingx
  */
-public class PurchaseManager extends User {//inheritance
+public class InventoryManager extends User {
     private String approvalLimit;
 
-    public PurchaseManager(String userId, String username, String userPhone, String userEmail, String userAddress, String userPw, String userRole, String approvalLimit) {
-        super(userId, username, userPhone, userEmail, userAddress, userPw, "Purchase Manager");
+    public InventoryManager(String userId, String username, String userPhone, String userEmail, String userAddress, String userPw, String userRole, String approvalLimit) {
+        super(userId, username, userPhone, userEmail, userAddress, userPw, "Inventory Manager");
         this.approvalLimit = approvalLimit;
     }
-    
     @Override
     public String toString(){
         return super.toString()+"|"+ approvalLimit;
@@ -30,5 +33,4 @@ public class PurchaseManager extends User {//inheritance
     public void setApprovalLimit(String approvalLimit) {
         this.approvalLimit = approvalLimit;
     }
-    
 }

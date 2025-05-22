@@ -88,15 +88,28 @@ public class PrManager {
     }
 
 
+//    public boolean deletePr(String prId) {
+//        pr pr = findPrById(prId);
+//        if (pr != null) {
+//            prList.remove(pr);
+//            savePr();
+//            return true;
+//        }
+//        return false;
+//    }
+    
     public boolean deletePr(String prId) {
-        pr pr = findPrById(prId);
-        if (pr != null) {
-            prList.remove(pr);
-            savePr();
-            return true;
+        pr targetPr = findPrById(prId);
+        if (targetPr == null) {
+            return false;
         }
-        return false;
+        poM.deletePoByPrId(prId);  
+        // Remove PR
+        prList.remove(targetPr);
+        savePr();
+        return true;
     }
+
 
     // Method to add a PR
     public boolean addPr(pr pr) {

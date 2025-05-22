@@ -37,9 +37,6 @@ public class po {
         this.invoiceDate = invoiceDate;
     }
 
-
-    
-
     public String getPoId() {
         return poId;
     }
