@@ -17,8 +17,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import salesmanagement.pr.PrItem;
 /**
@@ -104,6 +102,13 @@ public class poFrame extends javax.swing.JFrame {
         tItemQuantity.setEnabled(edit);
         tItemUnitPrice.setEnabled(edit);
         tTotalCost.setEnabled(edit);
+    }
+    
+    //false=disable button
+    private void setButton(boolean edit) {
+        add.setEnabled(edit);
+        save.setEnabled(edit);
+        delete.setEnabled(edit);
     }
     
     private void dateRange(LocalDate minDate) {
@@ -513,6 +518,7 @@ public class poFrame extends javax.swing.JFrame {
         btnSearch = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         header = new javax.swing.JLabel();
+        btnBack = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         jPoTable = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
@@ -696,13 +702,13 @@ public class poFrame extends javax.swing.JFrame {
             }
         });
 
-        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel21.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel21.setText("PO ID:");
+        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel22.setText(" PR ID:");
+        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         tPrId.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -717,13 +723,13 @@ public class poFrame extends javax.swing.JFrame {
             }
         });
 
-        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel23.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel23.setText("Sales Manager:");
+        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel26.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel26.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel26.setText("Purchase Manager:");
+        jLabel26.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         tPurchaseManager.setForeground(new java.awt.Color(255, 255, 255));
         tPurchaseManager.addActionListener(new java.awt.event.ActionListener() {
@@ -732,17 +738,17 @@ public class poFrame extends javax.swing.JFrame {
             }
         });
 
-        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel14.setText("Order date:");
+        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel7.setText("Delivery date:");
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel15.setText("Invoice date:");
+        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -887,12 +893,24 @@ public class poFrame extends javax.swing.JFrame {
         header.setFont(new java.awt.Font("Sitka Text", 1, 24)); // NOI18N
         header.setToolTipText("");
 
+        btnBack.setText("Back");
+        btnBack.setBackground(new java.awt.Color(102, 102, 102));
+        btnBack.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
+        btnBack.setForeground(new java.awt.Color(255, 255, 255));
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(164, 164, 164)
+                .addGap(23, 23, 23)
+                .addComponent(btnBack)
+                .addGap(82, 82, 82)
                 .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -900,7 +918,9 @@ public class poFrame extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(header)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(header)
+                    .addComponent(btnBack))
                 .addContainerGap())
         );
 
@@ -1032,8 +1052,6 @@ public class poFrame extends javax.swing.JFrame {
             po newPo = poM.createPoFromPr(selectedPr, pmId);
 
             JOptionPane.showMessageDialog(this, "PO created from PR successfully! PO ID: " + newPo.getPoId());
-
-            // Optional updates
             loadTable(); // Refresh PO table
             clearText();
         } catch (Exception e) {
@@ -1199,6 +1217,11 @@ public class poFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_tPurchaseManagerActionPerformed
 
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        new MainMenu().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1243,6 +1266,7 @@ public class poFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add;
+    private javax.swing.JButton btnBack;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton clear;
     private javax.swing.JButton delete;
