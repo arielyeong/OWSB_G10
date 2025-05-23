@@ -71,6 +71,7 @@ public class PoManager {
         return null;
     }
 
+    // Find by PR ID 
     public po findPo(String id, boolean byPrId) { 
         if (id == null) return null;
         String searchId = id.trim().toUpperCase();
