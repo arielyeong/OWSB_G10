@@ -10,15 +10,17 @@ import java.util.HashMap;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.ListModel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import salesmanagement.pr.PrItem;
+import usermanagement.User;
+import usermanagement.SalesManager;
+import usermanagement.SalesManagerUser;
+
 /**
  *
  * @author charlotte
@@ -31,17 +33,19 @@ public class prFrame extends javax.swing.JFrame {
     LocalDate currentDate = LocalDate.now();
     
     PrManager prM = new PrManager();
+    PoManager poM = new PoManager();
     private ItemManager iM = new ItemManager();
     private SupplierManager sM = new SupplierManager();
     
     public static final String PR_FILE = "pr.txt";
-    public static final String[] SM_STATUS = {"DRAFT","SUBMITTED"};
-    public static final String[] PM_STATUS = {"DRAFT","SUBMITTED","APPROVED","REJECTED"};
+    public static final String[] SM_STATUS = {"SUBMITTED"};
+    public static final String[] PM_STATUS = {"SUBMITTED","APPROVED","REJECTED"};
     private String userRole = "SM";
+
     
     public prFrame() {
         initComponents();
-        updateStatusComboBox(userRole);
+        prM.setPoManager(poM);
         supplierList.setModel(new DefaultListModel<>());
         tCreatedDate.setText(currentDate.toString());
         
@@ -82,21 +86,23 @@ public class prFrame extends javax.swing.JFrame {
         reqDateRange(null);
         DefaultListModel<String> model = (DefaultListModel<String>) supplierList.getModel();
         model.clear();
+        updateStatusComboBox(userRole);
     }
 
     
-    private void setFormEditable(boolean edit) {//abstract
+    private void setFormEditable(boolean edit) {
         tCreatedDate.setEnabled(edit);
         tPrId.setEnabled(edit);
     }
     
-    private void setButton (boolean edit){
+    //false=disable button
+    private void setButton(boolean edit) {
         add.setEnabled(edit);
-        save.setEnabled(edit);
+//        save.setEnabled(edit);
         delete.setEnabled(edit);
     }
     
-    private void reqDateRange(LocalDate minDate) {//
+    private void reqDateRange(LocalDate minDate) {
         DatePickerSettings settings = tRequiredDate.getSettings();
         settings.setFormatForDatesCommonEra(pr.DATE_FORMATTER);
 
@@ -117,20 +123,19 @@ public class prFrame extends javax.swing.JFrame {
         
         prM.loadPr();          
         iM.loadItems();         
-        loadAllSuppliers(); 
+        loadAllSuppliers();
+        loadSalesManagers();             
+        loadSalesManagersToComboBox();
 
         pr currentPr = prM.getPr(index);
         if (currentPr == null) return;
         
-        if (currentPr.getSupplierId() != null) {
-            updateSupplierSelection(currentPr.getSupplierId());
-        }
-        
         tPrId.setText(currentPr.getPrId());
-        if (currentPr.getSmId() != null) {
-            tSalesManager.setSelectedItem(currentPr.getSmId());
-        }
         
+        if (currentPr.getSmId() != null) {
+            updateSalesManagerSelection(currentPr.getSmId());
+        }
+
         tPrStatus.setSelectedItem(currentPr.getPrStatus());
 
         if (currentPr.getCreatedDate() != null) {
@@ -161,11 +166,8 @@ public class prFrame extends javax.swing.JFrame {
             tItemUnitPrice.setText("");
             tTotalCost.setText("");
         }
-
         if (currentPr.getSupplierId() != null) {
             updateSupplierSelection(currentPr.getSupplierId());
-        } else {
-            supplierList.clearSelection();
         }
     }
 
@@ -205,6 +207,60 @@ public class prFrame extends javax.swing.JFrame {
     }
 
     
+    private void loadSalesManagers() {
+        smMap.clear(); 
+        List<User> users = User.getalluser();
+        for (User user : users) {
+            if (user instanceof SalesManagerUser) {
+                smMap.put(user.getUserId(), user.getUsername());
+            }
+        }
+    }
+    
+    private void loadSalesManagersToComboBox() {
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+        tSalesManager.removeAllItems();
+
+        for (Map.Entry<String, String> entry : smMap.entrySet()) {
+            String displayText = entry.getKey() + " - " + entry.getValue();
+            model.addElement(displayText);
+        }
+
+        tSalesManager.setModel(model);
+    }
+    
+    private void updateSalesManagerSelection(String smId) {
+        String currentSelection = (String)tSalesManager.getSelectedItem();
+
+        if (smId == null || smId.isEmpty()) {
+            if (currentSelection != null) {  
+                tSalesManager.setSelectedItem(null);
+            }
+            return;
+        }
+        String newSelection = null;
+        ComboBoxModel<String> model = tSalesManager.getModel();
+        for (int i = 0; i < model.getSize(); i++) {
+            String element = model.getElementAt(i);
+            if (element.startsWith(smId + " -")) {
+                newSelection = element;
+                break;
+            }
+        }
+        if (newSelection != null && !newSelection.equals(currentSelection)) {
+            tSalesManager.setSelectedItem(newSelection);
+        } else if (newSelection == null && currentSelection != null) {
+            tSalesManager.setSelectedItem(null);
+        }
+    }
+    
+    private String getSelectedSalesManagerId() {
+        String selected = (String) tSalesManager.getSelectedItem();
+        return selected != null ? selected.split(" - ")[0] : null;
+    }
+
+
+
     // --- SUPPLIER METHODS
     private void updateSupplierSelection(String selectedSupplierId) {
         ListModel<String> model = supplierList.getModel();
@@ -370,8 +426,10 @@ public class prFrame extends javax.swing.JFrame {
     public void updateStatusComboBox(String userRole) {
         if (userRole.equalsIgnoreCase("SM")) {
             tPrStatus.setModel(new DefaultComboBoxModel<>(SM_STATUS));
+            setButton(true);
         } else if (userRole.equalsIgnoreCase("PM")) {
             tPrStatus.setModel(new DefaultComboBoxModel<>(PM_STATUS));
+            setButton(false);
         }
     }
 
@@ -423,6 +481,7 @@ public class prFrame extends javax.swing.JFrame {
         btnSearch = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         header = new javax.swing.JLabel();
+        btnBack = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         jPrTable = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
@@ -621,7 +680,6 @@ public class prFrame extends javax.swing.JFrame {
         });
 
         tPrStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "DRAFT", "SUBMITTED", "APPROVED", "REJECTED" }));
-        tPrStatus.setForeground(new java.awt.Color(255, 255, 255));
         tPrStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tPrStatusActionPerformed(evt);
@@ -732,12 +790,24 @@ public class prFrame extends javax.swing.JFrame {
         header.setFont(new java.awt.Font("Sitka Text", 1, 24)); // NOI18N
         header.setToolTipText("");
 
+        btnBack.setBackground(new java.awt.Color(102, 102, 102));
+        btnBack.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
+        btnBack.setForeground(new java.awt.Color(255, 255, 255));
+        btnBack.setText("Back");
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(20, 20, 20)
+                .addComponent(btnBack)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(119, 119, 119))
         );
@@ -745,7 +815,9 @@ public class prFrame extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(header)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(header)
+                    .addComponent(btnBack))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -864,10 +936,8 @@ public class prFrame extends javax.swing.JFrame {
 
     private void addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addActionPerformed
         try {
-            String selectedManager = (String) tSalesManager.getSelectedItem();
             String selectedSupplier = supplierList.getSelectedValue();
             String status = (String) tPrStatus.getSelectedItem();
-            String smId = smMap.get(selectedManager);
             String supplierId = selectedSupplier.split(" - ")[0].trim();
             LocalDate reqDate = tRequiredDate.getDate();
             
@@ -875,6 +945,12 @@ public class prFrame extends javax.swing.JFrame {
             String selectedItemId = selectedItemText.split(" - ")[0].trim();
             int quantity = Integer.parseInt(tItemQuantity.getText().trim());
             Item selectedItem = iM.findItemById(selectedItemId);
+            
+            String smId = getSelectedSalesManagerId();
+            if (smId == null) {
+                JOptionPane.showMessageDialog(this, "Please select a valid Sales Manager.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             if (selectedItem == null) {
                 JOptionPane.showMessageDialog(this, "Selected item not found.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -907,9 +983,7 @@ public class prFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_searchActionPerformed
 
     private void tSalesManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tSalesManagerActionPerformed
-        for (String smName : smMap.keySet()) {
-            tSalesManager.addItem(smName);
-        }
+        String selectedId = getSelectedSalesManagerId();
     }//GEN-LAST:event_tSalesManagerActionPerformed
 
     private void clearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearActionPerformed
@@ -968,7 +1042,6 @@ public class prFrame extends javax.swing.JFrame {
             String selectedManager = (String) tSalesManager.getSelectedItem();
             String selectedSupplier = supplierList.getSelectedValue();
             String status = (String) tPrStatus.getSelectedItem();
-            String smId = smMap.get(selectedManager);
             String supplierId = selectedSupplier.split(" - ")[0].trim();
             LocalDate reqDate = tRequiredDate.getDate();
             
@@ -976,7 +1049,12 @@ public class prFrame extends javax.swing.JFrame {
             String selectedItemId = selectedItemText.split(" - ")[0].trim();
             int quantity = Integer.parseInt(tItemQuantity.getText().trim());
             Item selectedItem = iM.findItemById(selectedItemId);
-
+            
+            String smId = getSelectedSalesManagerId();
+            if (smId == null) {
+                JOptionPane.showMessageDialog(this, "Please select a valid Sales Manager.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             if (selectedItem == null) {
                 JOptionPane.showMessageDialog(this, "Selected item not found.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1035,6 +1113,11 @@ public class prFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_deleteActionPerformed
 
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        new MainMenu().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1075,6 +1158,7 @@ public class prFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add;
+    private javax.swing.JButton btnBack;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton clear;
     private javax.swing.JButton delete;
