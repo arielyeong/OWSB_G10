@@ -8,23 +8,28 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import usermanagement.PurchaseManager;
 
 /**
  *
  * @author charlotte
  */
-public class PoManager {
-    private List<po> poList;
-    private List<pr> prList;
+public class PoManager extends PurchaseManager {
+    
+    //private List<po> poList;
+    //private List<pr> prList;
     public static final String FILE_PATH = "po.txt";
     ItemManager iM = new ItemManager();
-    private PrManager prM;
+    //private PrManager prM;
     
     private final LocalDate currentDate = LocalDate.now();
 
     public PoManager() {
-        prList = new ArrayList<>();
-        poList = new ArrayList<>();
+        //prList = new ArrayList<>();
+        //poList = new ArrayList<>();
+        super();
         loadPo();
     }
     
@@ -48,49 +53,98 @@ public class PoManager {
         }
     }
     
-    public po getPo(int index) {
+    /*public List<po> getAllPo() {//
+        return poList;
+    }
+    
+    public po getPo(int index) {//
         if (index >= 0 && index < poList.size()) {
             return poList.get(index);
         }
         return null;
     }
     
-    public List<po> getAllPo() {
-        return poList;
+    public po findPoById(String poId) {//
+        for (po p : poList) {
+            if (po.getPoId().equals(poId)) {
+                return po;
+            }
+        }
+        return null;
     }
     
-    // Find by PO ID 
-    public po findPo(String poId) { 
-        if (poId == null) return null;
-        String searchId = poId.trim().toUpperCase();
-        for (po p : poList) {
-            if (p.getPoId().trim().toUpperCase().equals(searchId)) {
+    public po findPoByPrId(String prId){
+        for(po p : poList){
+            if (p.getPrId().trim().equals(prId.trim())){
                 return p;
             }
         }
         return null;
     }
-
-    // Find by PR ID 
-    public po findPo(String id, boolean byPrId) { 
-        if (id == null) return null;
-        String searchId = id.trim().toUpperCase();
-        for (po p : poList) {
-            if (byPrId) {
-                if (p.getPrId() != null && 
-                    p.getPrId().trim().toUpperCase().equals(searchId)) {
-                    return p;
-                }
-            } else {
-                if (p.getPoId().trim().toUpperCase().equals(searchId)) {
-                    return p;
-                }
+    
+    public void savePo() {//
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            for (po po: poList) {
+                writer.write(po.toFileString()); 
+                writer.newLine();
             }
+        } catch (IOException e) {
+            System.out.println("Error saving POs: " + e.getMessage());
         }
-        return null;
+    }*/
+    @Override
+    public boolean deletePo(String poId) {
+        po po = findPoById(poId);
+        if (po != null) {
+            poList.remove(po);
+            savePo();
+            return true;
+        }
+        return false;
+    }
+    @Override
+    public boolean deletePoByPrId(String prId){
+        po po = findPoByPrId(prId);
+        if(po != null){
+            poList.remove(po);
+            savePo();
+            return true;
+        }
+        return false;
     }
     
-    public String generateNewPoId() {
+    @Override
+    public boolean addPo(po po) {
+        if (findPoById(po.getPoId()) != null) { // if duplicate PO ID found
+            return false; 
+        }
+        poList.add(po);  
+        savePo();        
+        return true;
+    }
+    @Override
+    public boolean updatePo(po updatedPo) {
+        for (int i = 0; i < poList.size(); i++) {
+            po existPo = poList.get(i);
+            if (existPo.getPoId().equals(updatedPo.getPoId())) {
+                existPo.setPrId(updatedPo.getPrId());
+                existPo.setPmId(updatedPo.getPmId());
+                existPo.setSmId(updatedPo.getSmId());
+                existPo.setSupplierId(updatedPo.getSupplierId());
+                existPo.setItem(updatedPo.getItem());
+                existPo.setPoStatus(updatedPo.getPoStatus());
+                existPo.setCreatedDate(updatedPo.getCreatedDate());
+                existPo.setOrderDate(updatedPo.getOrderDate());
+                existPo.setDeliveryDate(updatedPo.getDeliveryDate());
+                existPo.setInvoiceDate(updatedPo.getInvoiceDate());
+                savePo(); 
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /*public String generateNewPoId() {
         int maxId = poList.stream()
             .map(p -> p.getPoId().replaceAll("\\D+", ""))
             .filter(s -> !s.isEmpty())
@@ -98,9 +152,9 @@ public class PoManager {
             .max()
             .orElse(0);
         return String.format("PO%03d", maxId + 1);
-    }
+    }*
     
-    public po createPoFromPr(pr approvedPr) {
+    public po createPoFromPr(pr approvedPr) {//
         List<pr> approvedPrs = prM.getApprovedPrs();
         boolean isValid = approvedPrs.stream()
             .anyMatch(p -> p.getPrId().equals(approvedPr.getPrId()));
@@ -126,66 +180,6 @@ public class PoManager {
         );
         addPo(newPo);
         return newPo;
-    }
-    
-    public boolean addPo(po po) {
-        if (findPo(po.getPoId()) != null) { // if duplicate PO ID found
-            return false; 
-        }
-        poList.add(po);  
-        savePo();        
-        return true;
-    }
+    }*/
 
-    public boolean updatePo(po updatedPo) {
-        for (int i = 0; i < poList.size(); i++) {
-            po existPo = poList.get(i);
-            if (existPo.getPoId().equals(updatedPo.getPoId())) {
-                existPo.setPrId(updatedPo.getPrId());
-                existPo.setPmId(updatedPo.getPmId());
-                existPo.setSmId(updatedPo.getSmId());
-                existPo.setSupplierId(updatedPo.getSupplierId());
-                existPo.setItem(updatedPo.getItem());
-                existPo.setPoStatus(updatedPo.getPoStatus());
-                existPo.setCreatedDate(updatedPo.getCreatedDate());
-                existPo.setOrderDate(updatedPo.getOrderDate());
-                existPo.setDeliveryDate(updatedPo.getDeliveryDate());
-                existPo.setInvoiceDate(updatedPo.getInvoiceDate());
-                savePo(); 
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    public void savePo() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            for (po po: poList) {
-                writer.write(po.toFileString()); 
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving POs: " + e.getMessage());
-        }
-    }
-
-    public boolean deletePo(String poId) {
-        po po = findPo(poId);
-        if (po != null) {
-            poList.remove(po);
-            savePo();
-            return true;
-        }
-        return false;
-    }
-    
-    public boolean deletePoByPrId(String prId) {
-        po po = findPo(prId);
-        if (po != null) {
-            poList.remove(po);
-            savePo();
-            return true;
-        }
-        return false;
-    }
 }
