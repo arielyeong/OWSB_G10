@@ -7,14 +7,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import usermanagement.SalesManager;
 
 
-public class DailySalesManager {
-    private List<DailySales> salesList = new ArrayList<>();
+public class DailySalesManager extends SalesManager {
+    //private List<DailySales> salesList = new ArrayList<>();
     private final String SALES_FILE = "dailysales.txt";
 
     public DailySalesManager() {
-        salesList = new ArrayList<>();
+        //salesList = new ArrayList<>();
+        super();
         loadSalesFromFile();
     }
     
@@ -22,9 +24,9 @@ public class DailySalesManager {
      *
      * @return
      */
-    public List<DailySales> getAllSales() {
+    /*public List<DailySales> getAllSales() {//
         return salesList;
-    }
+    }*/
 
     private void loadSalesFromFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(SALES_FILE))) {
@@ -37,7 +39,7 @@ public class DailySalesManager {
         }
     }
 
-    private void saveSalesToFile() {
+    /*private void saveSalesToFile() {//
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(SALES_FILE))) {
             for (DailySales sale : salesList) {
                 writer.write(sale.toFileString());
@@ -46,8 +48,8 @@ public class DailySalesManager {
         } catch (IOException e) {
             System.out.println("Error saving sales to file: " + e.getMessage());
         }
-    }
-
+    }*/
+    @Override
     public boolean addSales(DailySales sales) {
         for (DailySales existing : salesList) {
             //check duplicate sales id
@@ -59,7 +61,7 @@ public class DailySalesManager {
         saveSalesToFile();
         return true;
     }
-
+    @Override
     public boolean updateSales(DailySales sales) {
         for (int i = 0; i < salesList.size(); i++) {
             if (salesList.get(i).getSalesId().equals(sales.getSalesId())) {
@@ -70,7 +72,7 @@ public class DailySalesManager {
         }
         return false;
     }
-
+    @Override
     public boolean deleteSales(String salesId) {
         boolean removed = salesList.removeIf(s -> s.getSalesId().equals(salesId));
         if (removed) {
@@ -79,16 +81,34 @@ public class DailySalesManager {
         return removed;
     }
 
-    public DailySales findSalesById(String salesId) {
+    /*public DailySales findSalesById(String salesId) {//
         for (DailySales sale : salesList) {
             if (sale.getSalesId().equals(salesId)) {
                 return sale;
             }
         }
         return null;
-    }
+    }*/
 
-
-
+    @Override
+    public boolean addItem(Item item){return false;}
+    @Override
+    public boolean updateItem(Item item){return false;}
+    @Override
+    public boolean deleteItem(String itemId){return false;}
+    @Override
+    public boolean addSupplier(salesmanagement.Supplier supplier){return false;}
+    @Override
+    public boolean deleteSupplier(String supplierId){return false;}
+    @Override
+    public boolean updateSupplier(Supplier updatedSupplier){return false;}
+    @Override
+    public void saveEditedPr(pr editedPr) {}
+    @Override
+    public boolean deletePr(String prId){return false;}
+    @Override
+    public boolean addPr(pr pr){return false;}
+    @Override
+    public boolean updatePr(pr updatedPr){return false;}
     
 }

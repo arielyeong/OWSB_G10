@@ -11,19 +11,18 @@ import java.util.HashMap;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import salesmanagement.pr.PrItem;
-import usermanagement.SalesManager;
 import usermanagement.PurchaseManager;
-import usermanagement.User;
+
 /**
  *
  * @author charlotte
@@ -38,16 +37,21 @@ public class poFrame extends javax.swing.JFrame {
     
     private final ItemManager iM = new ItemManager();
     private final SupplierManager sM = new SupplierManager();
+    //private final PurchaseManager purchaseManager;
     
     PrManager prM = new PrManager();
     PoManager poM = new PoManager();
+    //PurchaseManager purchaseManager = new PurchaseManager()
 
+    
+    
     public static final String PR_FILE = "pr.txt";
     
-    public poFrame() {
+    public poFrame(){//PurchaseManager purchaseManager) {
         initComponents();
         prM.setPoManager(poM);
         poM.setPrManager(prM);
+        //this.purchaseManager = purchaseManager;
         supplierList.setModel(new DefaultListModel<>());
         tCreatedDate.setText(currentDate.toString());
         dateRange(null);
@@ -107,13 +111,6 @@ public class poFrame extends javax.swing.JFrame {
         tTotalCost.setEnabled(edit);
     }
     
-    //false=disable button
-    private void setButton(boolean edit) {
-        add.setEnabled(edit);
-        save.setEnabled(edit);
-        delete.setEnabled(edit);
-    }
-    
     private void dateRange(LocalDate minDate) {
         DatePickerSettings oSettings = tOrderDate.getSettings();
         DatePickerSettings dSettings = tDeliveryDate.getSettings();
@@ -158,6 +155,7 @@ public class poFrame extends javax.swing.JFrame {
     // --- PR dialog
     private pr approvedPrDialog() {
         List<pr> approvedPrs = prM.getApprovedPrs();
+        //List<pr> approvedPrs = getApprovedPrs();
 
         if (approvedPrs.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No approved PRs available.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -168,13 +166,13 @@ public class poFrame extends javax.swing.JFrame {
             .map(p -> p.getPrId() + " - " + p.getItem().getItem().getItemName())
             .toArray(String[]::new);
 
-        // Create JList with PR options
+        // Create a JList with the PR options
         JList<String> prList = new JList<>(prOptions);
         prList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(prList);
         scrollPane.setPreferredSize(new Dimension(300, 150)); 
 
-        // Show custom dialog with OK/Cancel button
+        // Show custom dialog with OK/Cancel buttons
         int result = JOptionPane.showConfirmDialog(
             this,
             scrollPane,
@@ -206,10 +204,7 @@ public class poFrame extends javax.swing.JFrame {
         poM.loadPo();
         iM.loadItems();         
         loadAllSuppliers(); 
-        loadSalesManagers();      
-        loadPurchaseManager();
-        loadSalesManagersToComboBox();
-        loadPurchaseManagersToComboBox();
+
         po currentPo = poM.getPo(index);
         if (currentPo == null) return;
 
@@ -217,12 +212,10 @@ public class poFrame extends javax.swing.JFrame {
         tPoId.setText(currentPo.getPoId()); 
         tPoStatus.setSelectedItem(currentPo.getPoStatus());
         if (currentPo.getSmId() != null) {
-            updateSalesManagerSelection(currentPo.getSmId());
+            tSalesManager.setSelectedItem(currentPo.getSmId());
         }
         if (currentPo.getPmId() != null) {
-            updatePurchaseManagerSelection(currentPo.getPmId());
-        } else {
-            tPurchaseManager.setSelectedItem(null);
+            tPurchaseManager.setSelectedItem(currentPo.getPmId());
         }
 
         if (currentPo.getCreatedDate() != null) {
@@ -275,7 +268,7 @@ public class poFrame extends javax.swing.JFrame {
     
     private void loadTable() {
         String[] columnNames = {
-            "PO ID", "PR ID", "Purchase Manager", "Sales Manager", "Supplier",
+            "PO ID", "PR ID", "Sales Manager", "Purchase Manager", "Supplier",
             "Item", "Quantity", "Unit Cost",
             "Status", "Created Date", "Order Date"
         };
@@ -308,117 +301,8 @@ public class poFrame extends javax.swing.JFrame {
             }
         }
     }
-    
-    
-    // --- SALES MANAGER METHOD
-    private void loadSalesManagers() {
-        smMap.clear(); 
-        List<User> users = User.getalluser();
-        for (User user : users) {
-            if (user instanceof SalesManager) {
-                smMap.put(user.getUserId(), user.getUsername());
-            }
-        }
-    }
-   
-    private void loadSalesManagersToComboBox() {
-        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-        tSalesManager.removeAllItems();
-        List<Map.Entry<String, String>> sortedEntries = new ArrayList<>(smMap.entrySet());
-        sortedEntries.sort(Map.Entry.comparingByKey());
-        for (Map.Entry<String, String> entry : sortedEntries) {
-            String displayText = entry.getKey() + " - " + entry.getValue();
-            model.addElement(displayText);
-        }
-        tSalesManager.setModel(model);
-    }
-    
-    private void updateSalesManagerSelection(String smId) {
-        String currentSelection = (String)tSalesManager.getSelectedItem();
 
-        if (smId == null || smId.isEmpty()) {
-            if (currentSelection != null) {  
-                tSalesManager.setSelectedItem(null);
-            }
-            return;
-        }
-        String newSelection = null;
-        ComboBoxModel<String> model = tSalesManager.getModel();
-        for (int i = 0; i < model.getSize(); i++) {
-            String element = model.getElementAt(i);
-            if (element.startsWith(smId + " -")) {
-                newSelection = element;
-                break;
-            }
-        }
-        if (newSelection != null && !newSelection.equals(currentSelection)) {
-            tSalesManager.setSelectedItem(newSelection);
-        } else if (newSelection == null && currentSelection != null) {
-            tSalesManager.setSelectedItem(null);
-        }
-    }
-    
-    private String getSelectedSalesManagerId() {
-        String selected = (String) tSalesManager.getSelectedItem();
-        return selected != null ? selected.split(" - ")[0] : null;
-    }
 
-    // --- PURCHASE MANAGER METHOD
-    private void loadPurchaseManager() {
-        pmMap.clear(); 
-        List<User> users = User.getalluser();
-        for (User user : users) {
-            if (user instanceof PurchaseManager) {
-                pmMap.put(user.getUserId(), user.getUsername());
-            }
-        }
-    }
-    
-    private void loadPurchaseManagersToComboBox() {
-        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-        tPurchaseManager.removeAllItems();
-        List<Map.Entry<String, String>> sortedEntries = new ArrayList<>(pmMap.entrySet());
-        sortedEntries.sort(Map.Entry.comparingByKey());
-        for (Map.Entry<String, String> entry : sortedEntries) {
-            String displayText = entry.getKey() + " - " + entry.getValue();
-            model.addElement(displayText);
-        }
-        tPurchaseManager.setModel(model);
-    }
-    
-    private void updatePurchaseManagerSelection(String pmId) {
-        String currentSelection = (String) tPurchaseManager.getSelectedItem();
-
-        if (pmId == null || pmId.isEmpty()) {
-            if (currentSelection != null) {  
-                tPurchaseManager.setSelectedItem(null);
-            }
-            return;
-        }
-
-        String newSelection = null;
-        ComboBoxModel<String> model = tPurchaseManager.getModel();
-        for (int i = 0; i < model.getSize(); i++) {
-            String element = model.getElementAt(i);
-            if (element.startsWith(pmId + " -")) {
-                newSelection = element;
-                break;
-            }
-        }
-
-        if (newSelection != null && !newSelection.equals(currentSelection)) {
-            tPurchaseManager.setSelectedItem(newSelection);
-        } else if (newSelection == null && currentSelection != null) {
-            tPurchaseManager.setSelectedItem(null);
-        }
-    }
-
-    private String getSelectedPurchaseManagerId() {
-        String selected = (String) tPurchaseManager.getSelectedItem();
-        return selected != null ? selected.split(" - ")[0] : null;
-    }
-
-    
     // --- SUPPLIER METHODS
     private void updateSupplierSelection(String selectedSupplierId) {
         ListModel<String> model = supplierList.getModel();
@@ -635,7 +519,6 @@ public class poFrame extends javax.swing.JFrame {
         btnSearch = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         header = new javax.swing.JLabel();
-        btnBack = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         jPoTable = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
@@ -819,13 +702,13 @@ public class poFrame extends javax.swing.JFrame {
             }
         });
 
+        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel21.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel21.setText("PO ID:");
-        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
+        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel22.setText(" PR ID:");
-        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         tPrId.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -840,13 +723,13 @@ public class poFrame extends javax.swing.JFrame {
             }
         });
 
+        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel23.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel23.setText("Sales Manager:");
-        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
+        jLabel26.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel26.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel26.setText("Purchase Manager:");
-        jLabel26.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         tPurchaseManager.setForeground(new java.awt.Color(255, 255, 255));
         tPurchaseManager.addActionListener(new java.awt.event.ActionListener() {
@@ -855,55 +738,66 @@ public class poFrame extends javax.swing.JFrame {
             }
         });
 
+        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel14.setText("Order date:");
-        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel7.setText("Delivery date:");
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
+        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel15.setText("Invoice date:");
-        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel23)
-                    .addComponent(jLabel26)
-                    .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel26, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel23, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel22, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel21, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tPoId, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tPrId, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tPurchaseManager, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tSalesManager, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                        .addComponent(tSalesManager, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(354, 354, 354))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                        .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(tPrId, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(tPoId, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(352, 352, 352))))
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(61, 61, 61)
+                .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(429, 429, 429))
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addGap(61, 61, 61)
-                        .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel7Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                        .addGap(51, 51, 51)
+                        .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
-                                .addComponent(jLabel15, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel15, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel9, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(tPurchaseManager, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(354, 354, 354))
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addGap(24, 24, 24)
                         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(tCreatedDate, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tPoStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -915,8 +809,7 @@ public class poFrame extends javax.swing.JFrame {
                             .addComponent(tOrderDate, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tDeliveryDate, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tInvoiceDate, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(429, 429, 429))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -924,22 +817,23 @@ public class poFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(11, 11, 11)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel21)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(jLabel21)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel22)
+                            .addComponent(tPrId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(tPoId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel22)
-                    .addComponent(tPrId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tPurchaseManager, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(tSalesManager, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(27, 27, 27)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tPurchaseManager, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(23, 23, 23)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(tPoStatus))
@@ -959,7 +853,7 @@ public class poFrame extends javax.swing.JFrame {
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel15)
                     .addComponent(tInvoiceDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(27, 27, 27)
+                .addGap(26, 26, 26)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
                     .addComponent(tItem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -999,24 +893,12 @@ public class poFrame extends javax.swing.JFrame {
         header.setFont(new java.awt.Font("Sitka Text", 1, 24)); // NOI18N
         header.setToolTipText("");
 
-        btnBack.setText("Back");
-        btnBack.setBackground(new java.awt.Color(102, 102, 102));
-        btnBack.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
-        btnBack.setForeground(new java.awt.Color(255, 255, 255));
-        btnBack.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBackActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addComponent(btnBack)
-                .addGap(82, 82, 82)
+                .addGap(164, 164, 164)
                 .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1024,9 +906,7 @@ public class poFrame extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(header)
-                    .addComponent(btnBack))
+                .addComponent(header)
                 .addContainerGap())
         );
 
@@ -1095,7 +975,7 @@ public class poFrame extends javax.swing.JFrame {
                                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                        .addContainerGap(15, Short.MAX_VALUE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 516, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1104,16 +984,13 @@ public class poFrame extends javax.swing.JFrame {
                                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(78, 78, 78)))))
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGap(112, 112, 112)
+                    .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, 413, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                         .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(btnSearch)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
-                        .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, 393, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(24, Short.MAX_VALUE))))
+                        .addGap(21, 21, 21)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1141,7 +1018,7 @@ public class poFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 961, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -1157,9 +1034,12 @@ public class poFrame extends javax.swing.JFrame {
             pr selectedPr = approvedPrDialog();
             if (selectedPr == null) return;
 
-            po newPo = poM.createPoFromPr(selectedPr);
+            String pmId = "PM001"; 
+            po newPo = poM.createPoFromPr(selectedPr, pmId);
 
             JOptionPane.showMessageDialog(this, "PO created from PR successfully! PO ID: " + newPo.getPoId());
+
+            // Optional updates
             loadTable(); // Refresh PO table
             clearText();
         } catch (Exception e) {
@@ -1177,32 +1057,29 @@ public class poFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_clearActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        String searchId = search.getText().trim().toUpperCase();
-        
+        String searchId = search.getText().toUpperCase();
         if (searchId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a PO/PR ID to search");
+            JOptionPane.showMessageDialog(this, "Please enter a PO ID to search");
             return;
         }
-        // Try both PO and PR ID searches
-        po foundPo = poM.findPo(searchId); 
-        boolean isPrSearch = false;
-        if (foundPo == null && searchId.startsWith("PR")) {
-            foundPo = poM.findPo(searchId, true);
-            isPrSearch = true;
-        }
+        List<po> allPo = poM.getAllPo();
+        boolean found = false;
 
-        if (foundPo != null) {
-            int index = poM.getAllPo().indexOf(foundPo);
-            if (index >= 0) {
-                displayPo(index);
-                return;
+        for (int i = 0; i < allPo.size(); i++) {
+            po currentPo = allPo.get(i);
+            if (currentPo.getPoId().toUpperCase().equals(searchId)) {
+                displayPo(i);
+                found = true;
+                break;
             }
         }
-        String searchType = isPrSearch ? "PR" : "PO";
-        JOptionPane.showMessageDialog(this, 
-            searchId + " not found as " + searchType + " ID",
-            "Not Found",
-            JOptionPane.WARNING_MESSAGE);
+
+        if (!found) {
+            JOptionPane.showMessageDialog(this, 
+                search + " not found",
+                "Not Found",
+                JOptionPane.WARNING_MESSAGE);
+        }
     }//GEN-LAST:event_btnSearchActionPerformed
 
     private void tItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tItemActionPerformed
@@ -1226,12 +1103,14 @@ public class poFrame extends javax.swing.JFrame {
         try {
             String poId = tPoId.getText().trim(); 
             String prId = tPrId.getText().trim();
-            String smId = getSelectedSalesManagerId();
-            String pmId = getSelectedPurchaseManagerId();
+
+            String selectedSManager = (String) tSalesManager.getSelectedItem();
+            String selectedPManager = (String) tPurchaseManager.getSelectedItem();
             String selectedSupplier = supplierList.getSelectedValue();
             String status = (String) tPoStatus.getSelectedItem();
-            
-            
+
+            String smId = smMap.get(selectedSManager);
+            String pmId = smMap.get(selectedPManager);
             String supplierId = selectedSupplier.split(" - ")[0].trim();
             LocalDate orderDate = tOrderDate.getDate();
             LocalDate deliveryDate = null;
@@ -1259,8 +1138,8 @@ public class poFrame extends javax.swing.JFrame {
             po updatedPo = new po(
                 poId,
                 prId,
-                pmId,
                 smId,
+                pmId, 
                 supplierId,
                 prItem,
                 status,
@@ -1297,16 +1176,16 @@ public class poFrame extends javax.swing.JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 boolean deleted = poM.deletePo(poId);
                 if (deleted) {
-                    JOptionPane.showMessageDialog(this, "PO deleted successfully.");
+                    JOptionPane.showMessageDialog(this, "PR deleted successfully.");
                     clearText();
                     loadTable();
                     displayPo(0);
                 } else {
-                    JOptionPane.showMessageDialog(this, "PO not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "PR not found.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error delete PO: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error delete PR: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_deleteActionPerformed
 
@@ -1315,7 +1194,7 @@ public class poFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_tPoIdActionPerformed
 
     private void tPrIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tPrIdActionPerformed
-        String selectedId = getSelectedSalesManagerId();
+        // TODO add your handling code here:
     }//GEN-LAST:event_tPrIdActionPerformed
 
     private void tSalesManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tSalesManagerActionPerformed
@@ -1323,13 +1202,8 @@ public class poFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_tSalesManagerActionPerformed
 
     private void tPurchaseManagerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tPurchaseManagerActionPerformed
-        String selectedId = getSelectedPurchaseManagerId();
+        // TODO add your handling code here:
     }//GEN-LAST:event_tPurchaseManagerActionPerformed
-
-    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        new MainMenu().setVisible(true);
-        this.dispose();
-    }//GEN-LAST:event_btnBackActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1375,7 +1249,6 @@ public class poFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add;
-    private javax.swing.JButton btnBack;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton clear;
     private javax.swing.JButton delete;

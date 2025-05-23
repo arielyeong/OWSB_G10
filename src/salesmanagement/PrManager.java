@@ -9,65 +9,58 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import usermanagement.SalesManager;
+
 
 /**
  *
  * @author charlotte
  */
-public class PrManager {
-    private List<pr> prList;
+public class PrManager extends SalesManager{
+    //private List<pr> prList;
     public static final String FILE_PATH = "pr.txt";
     ItemManager iM = new ItemManager();
     private PoManager poM;
     
     public PrManager() {
-        prList = new ArrayList<>();
+        //prList = new ArrayList<>();
+        super();
         loadPr();
     }
     
-    public void setPoManager(PoManager poM) {
+    public void setPoManager(PoManager poM) {//
         this.poM = poM;
     }
     
     public void loadPr() {
         prList.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (!line.isEmpty()) {  
-                    pr prObject = pr.fromFileString(line, iM.getAllItems());
-                    prList.add(prObject);
-                }
+        String line;
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (!line.isEmpty()) {  
+                pr prObject = pr.fromFileString(line, iM.getAllItems());
+                prList.add(prObject);
             }
-        } catch (IOException e) {
-            System.out.println("Error loading PRs: " + e.getMessage());
         }
+    } catch (IOException e) {
+        System.out.println("Error loading PRs: " + e.getMessage());
+    }
+}
+    
+    
+    /*public List<pr> getAllPr() {//
+        return prList;
     }
     
-    public pr getPr(int index) {
+    public pr getPr(int index) {//
         if (index >= 0 && index < prList.size()) {
             return prList.get(index);
         }
         return null;
     }
-    
-    public List<pr> getAllPr() {
-        return prList;
-    }
-    
-    public List<pr> getApprovedPrs() {
-        Set<String> prInPo = poM.getAllPo().stream()
-            .map(po::getPrId)
-            .collect(Collectors.toSet());
 
-        return prList.stream()
-            .filter(p -> "APPROVED".equalsIgnoreCase(p.getPrStatus()))
-            .filter(p -> !prInPo.contains(p.getPrId())) 
-            .collect(Collectors.toList());
-    }
-
-    public pr findPrById(String prId) {
+    public pr findPrById(String prId) {//
         for (pr pr : prList) {
             if (pr.getPrId().equals(prId)) {
                 return pr;
@@ -75,17 +68,40 @@ public class PrManager {
         }
         return null;
     }
-    
-    public String generateNewPrId() {
-        int maxId = prList.stream()
-            .map(p -> p.getPrId().replaceAll("\\D+", ""))
-            .filter(s -> !s.isEmpty())
-            .mapToInt(Integer::parseInt)
-            .max()
-            .orElse(0);
-        return String.format("PR%03d", maxId + 1);
+
+    public void savePr() {//
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            for (pr pr : prList) {
+                writer.write(pr.toFileString()); 
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving PRs: " + e.getMessage());
+        }
+    }*/
+    @Override
+    public void saveEditedPr(pr editedPr) {
+        for (int i = 0; i < prList.size(); i++) {
+            if (prList.get(i).getPrId().equals(editedPr.getPrId())) {
+                prList.set(i, editedPr);
+                break;
+            }
+        }
+        savePr(); // save full list
     }
-    
+
+    @Override
+    public boolean deletePr(String prId) {
+        pr pr = findPrById(prId);
+        if (pr != null) {
+            prList.remove(pr);
+            savePr();
+            return true;
+        }
+        return false;
+    }
+    @Override
+    // Method to add a PR
     public boolean addPr(pr pr) {
         if (findPrById(pr.getPrId()) != null) { // if Duplicate PR ID found
             return false; 
@@ -94,7 +110,7 @@ public class PrManager {
         savePr();        
         return true;
     }
-
+    @Override
     public boolean updatePr(pr updatedPr) {
         for (int i = 0; i < prList.size(); i++) {
             pr existPr = prList.get(i);
@@ -109,38 +125,48 @@ public class PrManager {
                 return true;
             }
         }
-        return false;
+        return false; // No matching PR found
+    }
+
+    public String generateNewPrId() {//
+        int maxId = prList.stream()
+            .map(p -> p.getPrId().replaceAll("\\D+", ""))
+            .filter(s -> !s.isEmpty())
+            .mapToInt(Integer::parseInt)
+            .max()
+            .orElse(0);
+        return String.format("PR%03d", maxId + 1);
     }
     
-    public void savePr() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            for (pr pr : prList) {
-                writer.write(pr.toFileString()); 
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving PRs: " + e.getMessage());
-        }
+    public List<pr> getApprovedPrs() {
+        Set<String> prInPo = poM.getAllPo().stream()
+            .map(po::getPrId)
+            .collect(Collectors.toSet());
+
+        return prList.stream()
+            .filter(p -> "APPROVED".equalsIgnoreCase(p.getPrStatus()))
+            .filter(p -> !prInPo.contains(p.getPrId())) 
+            .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean addItem(Item item){return false;}
+    @Override
+    public boolean updateItem(Item item){return false;}
+    @Override
+    public boolean deleteItem(String itemId){return false;}
+    @Override
+    public boolean addSupplier(salesmanagement.Supplier supplier){return false;}
+    @Override
+    public boolean deleteSupplier(String supplierId){return false;}
+    @Override
+    public boolean updateSupplier(Supplier updatedSupplier){return false;}
+    @Override
+    public boolean addSales(DailySales sales){return false;}
+    @Override
+    public boolean updateSales(DailySales sales){return false;}
+    @Override
+    public boolean deleteSales(String salesId){return false;}
+
     
-    public void saveEditedPr(pr editedPr) {
-        for (int i = 0; i < prList.size(); i++) {
-            if (prList.get(i).getPrId().equals(editedPr.getPrId())) {
-                prList.set(i, editedPr);
-                break;
-            }
-        }
-        savePr(); 
-    }
-    
-    public boolean deletePr(String prId) {
-        pr targetPr = findPrById(prId);
-        if (targetPr == null) {
-            return false;
-        }
-        poM.deletePoByPrId(prId); //remove existing po 
-        prList.remove(targetPr); //remove pr
-        savePr();
-        return true;
-    }
 }
