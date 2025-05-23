@@ -81,6 +81,15 @@ public class ItemManager {
         }
         return null;
     }
+    
+    public Item findItemByName(String name) {
+        for (Item item : items) {
+            if (item.getItemName().equalsIgnoreCase(name)) {
+                return item;
+            }
+        }
+        return null;
+    }
 
     public List<Item> getAllItems() {
         return new ArrayList<>(items);
