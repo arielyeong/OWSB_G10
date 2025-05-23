@@ -947,14 +947,19 @@ public class itementry extends javax.swing.JFrame {
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         String id = textSearch.getText().trim();
-    Item item = itemManager.findItemById(id);
+        Item item = itemManager.findItemById(id);
+        
+        // If not found by ID, try searching by name
+        if (item == null) {
+            item = itemManager.findItemByName(id);
+        }
 
-    if (item != null) {
-        currentIndex = items.indexOf(item); // Update currentIndex
-        displayItem(item);
-    } else {
-        JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
-    }
+        if (item != null) {
+            currentIndex = items.indexOf(item); // Update currentIndex
+            displayItem(item);
+        } else {
+            JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     
     }//GEN-LAST:event_btnSearchActionPerformed
 
