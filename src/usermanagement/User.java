@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 
 
+
 /**
  *
  * @author charlotte
@@ -33,6 +34,7 @@ public abstract class User {
     public abstract boolean adduser();
     public abstract boolean deleteuser(String userId);
     public abstract boolean edituser();
+
     
     protected boolean savetofile(){
         try (BufferedWriter writer=new BufferedWriter(new FileWriter(user_file,true))){
@@ -48,15 +50,15 @@ public abstract class User {
         }
     }
     @Override
-    public String toString(){
+    public String toString(){//user
         String base = String.join("|", userId, username, userPhone, userEmail, userAddress, userPw, userRole);
-//        if(this instanceof SalesManager){
-//            return base + "|"+((SalesManager)this).getSalesRegion();
-//        }else if (this instanceof PurchaseManager){
-//            return base + "|"+((PurchaseManager)this).getApprovalLimit();
-//        }else if (this instanceof InventoryManager){
-//            return base + "|"+((InventoryManager)this).getApprovalLimit();
-//        }
+        if(this instanceof SalesManagerUser){
+            return base + "|"+((SalesManagerUser)this).getSalesRegion();
+        }else if (this instanceof PurchaseManagerUser){
+            return base + "|"+((PurchaseManagerUser)this).getApprovalLimit();
+        }else if (this instanceof InventoryManager){
+            return base + "|"+((InventoryManager)this).getApprovalLimit();
+        }
         return base;
         //return String.join("|", userId, username, userPhone, userEmail, userAddress, userPw, userRole);
     }
@@ -75,6 +77,7 @@ public abstract class User {
         }
         return null;
     }
+    //user
     private static User createuserfromparts(String[] parts){
         String userRole = parts[6];
         switch (userRole){
@@ -82,10 +85,10 @@ public abstract class User {
                 return new Administrator(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5],parts[6]);
             case "Sales Manager":
                 String region = parts.length>7 ? parts[7]:"";
-                return new SalesManager(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5],parts[6],region);
+                return new SalesManagerUser(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5],parts[6],region);
             case "Purchase Manager":
                 String approvelimit = parts.length>7 ? parts[7]:"";//Integer.parseInt(parts[7]): "0" ;
-                return new PurchaseManager(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5],parts[6],approvelimit);
+                return new PurchaseManagerUser(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5],parts[6],approvelimit);
             case "Inventory Manager":
                 String applimit = parts.length>7 ? parts[7]:"";
                 return new InventoryManager(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5],parts[6],applimit);
@@ -131,6 +134,7 @@ public abstract class User {
             return false;
         }
     }
+    
     public String getUserId() {//encapulation
         return userId;
     }
