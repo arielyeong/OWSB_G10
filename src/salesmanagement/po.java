@@ -11,11 +11,11 @@ import java.util.List;
 public class po {
     private String poId;
     private String prId;
-    private String pmId;
-    private String smId;
+    private String pmId; //purchase manager
+    private String smId; //sales manager
     private String supplierId;
     private pr.PrItem item;
-    private String poStatus;
+    private String poStatus; //PENDING, ORDERED, DELIVERED, COMPLETE
     private LocalDate createdDate;
     private LocalDate orderDate;
     private LocalDate deliveryDate;
@@ -208,8 +208,4 @@ public class po {
                 "Failed to parse PO: '" + fileString + "'. Error: " + e.getMessage(), e);
         }
     }
-
-
-
-    
 }

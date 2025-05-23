@@ -32,22 +32,17 @@ public class PrManager {
     public void loadPr() {
         prList.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            line = line.trim();
-            if (!line.isEmpty()) {  
-                pr prObject = pr.fromFileString(line, iM.getAllItems());
-                prList.add(prObject);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!line.isEmpty()) {  
+                    pr prObject = pr.fromFileString(line, iM.getAllItems());
+                    prList.add(prObject);
+                }
             }
+        } catch (IOException e) {
+            System.out.println("Error loading PRs: " + e.getMessage());
         }
-    } catch (IOException e) {
-        System.out.println("Error loading PRs: " + e.getMessage());
-    }
-}
-    
-    
-    public List<pr> getAllPr() {
-        return prList;
     }
     
     public pr getPr(int index) {
@@ -55,6 +50,21 @@ public class PrManager {
             return prList.get(index);
         }
         return null;
+    }
+    
+    public List<pr> getAllPr() {
+        return prList;
+    }
+    
+    public List<pr> getApprovedPrs() {
+        Set<String> prInPo = poM.getAllPo().stream()
+            .map(po::getPrId)
+            .collect(Collectors.toSet());
+
+        return prList.stream()
+            .filter(p -> "APPROVED".equalsIgnoreCase(p.getPrStatus()))
+            .filter(p -> !prInPo.contains(p.getPrId())) 
+            .collect(Collectors.toList());
     }
 
     public pr findPrById(String prId) {
@@ -66,52 +76,16 @@ public class PrManager {
         return null;
     }
     
-    public void savePr() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            for (pr pr : prList) {
-                writer.write(pr.toFileString()); 
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving PRs: " + e.getMessage());
-        }
+    public String generateNewPrId() {
+        int maxId = prList.stream()
+            .map(p -> p.getPrId().replaceAll("\\D+", ""))
+            .filter(s -> !s.isEmpty())
+            .mapToInt(Integer::parseInt)
+            .max()
+            .orElse(0);
+        return String.format("PR%03d", maxId + 1);
     }
     
-    public void saveEditedPr(pr editedPr) {
-        for (int i = 0; i < prList.size(); i++) {
-            if (prList.get(i).getPrId().equals(editedPr.getPrId())) {
-                prList.set(i, editedPr);
-                break;
-            }
-        }
-        savePr(); // save full list
-    }
-
-
-//    public boolean deletePr(String prId) {
-//        pr pr = findPrById(prId);
-//        if (pr != null) {
-//            prList.remove(pr);
-//            savePr();
-//            return true;
-//        }
-//        return false;
-//    }
-    
-    public boolean deletePr(String prId) {
-        pr targetPr = findPrById(prId);
-        if (targetPr == null) {
-            return false;
-        }
-        poM.deletePoByPrId(prId);  
-        // Remove PR
-        prList.remove(targetPr);
-        savePr();
-        return true;
-    }
-
-
-    // Method to add a PR
     public boolean addPr(pr pr) {
         if (findPrById(pr.getPrId()) != null) { // if Duplicate PR ID found
             return false; 
@@ -135,28 +109,38 @@ public class PrManager {
                 return true;
             }
         }
-        return false; // No matching PR found
-    }
-
-    public String generateNewPrId() {
-        int maxId = prList.stream()
-            .map(p -> p.getPrId().replaceAll("\\D+", ""))
-            .filter(s -> !s.isEmpty())
-            .mapToInt(Integer::parseInt)
-            .max()
-            .orElse(0);
-        return String.format("PR%03d", maxId + 1);
+        return false;
     }
     
-    public List<pr> getApprovedPrs() {
-        Set<String> prInPo = poM.getAllPo().stream()
-            .map(po::getPrId)
-            .collect(Collectors.toSet());
-
-        return prList.stream()
-            .filter(p -> "APPROVED".equalsIgnoreCase(p.getPrStatus()))
-            .filter(p -> !prInPo.contains(p.getPrId())) 
-            .collect(Collectors.toList());
+    public void savePr() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            for (pr pr : prList) {
+                writer.write(pr.toFileString()); 
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving PRs: " + e.getMessage());
+        }
     }
-
+    
+    public void saveEditedPr(pr editedPr) {
+        for (int i = 0; i < prList.size(); i++) {
+            if (prList.get(i).getPrId().equals(editedPr.getPrId())) {
+                prList.set(i, editedPr);
+                break;
+            }
+        }
+        savePr(); 
+    }
+    
+    public boolean deletePr(String prId) {
+        pr targetPr = findPrById(prId);
+        if (targetPr == null) {
+            return false;
+        }
+        poM.deletePoByPrId(prId); //remove existing po 
+        prList.remove(targetPr); //remove pr
+        savePr();
+        return true;
+    }
 }

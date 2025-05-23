@@ -1177,29 +1177,32 @@ public class poFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_clearActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        String searchId = search.getText().toUpperCase();
+        String searchId = search.getText().trim().toUpperCase();
+        
         if (searchId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a PO ID to search");
+            JOptionPane.showMessageDialog(this, "Please enter a PO/PR ID to search");
             return;
         }
-        List<po> allPo = poM.getAllPo();
-        boolean found = false;
+        // Try both PO and PR ID searches
+        po foundPo = poM.findPo(searchId); 
+        boolean isPrSearch = false;
+        if (foundPo == null && searchId.startsWith("PR")) {
+            foundPo = poM.findPo(searchId, true);
+            isPrSearch = true;
+        }
 
-        for (int i = 0; i < allPo.size(); i++) {
-            po currentPo = allPo.get(i);
-            if (currentPo.getPoId().toUpperCase().equals(searchId)) {
-                displayPo(i);
-                found = true;
-                break;
+        if (foundPo != null) {
+            int index = poM.getAllPo().indexOf(foundPo);
+            if (index >= 0) {
+                displayPo(index);
+                return;
             }
         }
-
-        if (!found) {
-            JOptionPane.showMessageDialog(this, 
-                search + " not found",
-                "Not Found",
-                JOptionPane.WARNING_MESSAGE);
-        }
+        String searchType = isPrSearch ? "PR" : "PO";
+        JOptionPane.showMessageDialog(this, 
+            searchId + " not found as " + searchType + " ID",
+            "Not Found",
+            JOptionPane.WARNING_MESSAGE);
     }//GEN-LAST:event_btnSearchActionPerformed
 
     private void tItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tItemActionPerformed
@@ -1294,16 +1297,16 @@ public class poFrame extends javax.swing.JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 boolean deleted = poM.deletePo(poId);
                 if (deleted) {
-                    JOptionPane.showMessageDialog(this, "PR deleted successfully.");
+                    JOptionPane.showMessageDialog(this, "PO deleted successfully.");
                     clearText();
                     loadTable();
                     displayPo(0);
                 } else {
-                    JOptionPane.showMessageDialog(this, "PR not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "PO not found.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error delete PR: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error delete PO: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_deleteActionPerformed
 
