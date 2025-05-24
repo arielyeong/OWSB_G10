@@ -98,8 +98,6 @@ public class mainlogin extends javax.swing.JFrame {
 
         rolebox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Admin", "Sales Manager", "Purchase Manager", "Inventory Manager", "Finance Manager" }));
 
-        passwdtxt.setText("jPasswordField1");
-
         btnlogin.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnlogin.setText("Login");
         btnlogin.addActionListener(new java.awt.event.ActionListener() {
