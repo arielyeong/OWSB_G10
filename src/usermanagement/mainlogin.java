@@ -22,6 +22,8 @@ public class mainlogin extends javax.swing.JFrame {
      */
     public mainlogin() {
         initComponents();
+        setLocationRelativeTo(null);
+
         createusertxt();
         //login();
     }

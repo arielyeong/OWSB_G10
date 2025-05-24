@@ -39,6 +39,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
      */
     public DailySalesEntry() {
     initComponents();
+    setLocationRelativeTo(null);
     txtItemName.setEditable(false);
     txtSaleId1.setEditable(false);
     salesManager = new DailySalesManager();

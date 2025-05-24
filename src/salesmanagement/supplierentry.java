@@ -37,6 +37,7 @@ public class supplierentry extends javax.swing.JFrame {
         clearFields();
         refreshTable();
         refreshItemTable();
+        setLocationRelativeTo(null);
     }
 
       private void clearFields() {

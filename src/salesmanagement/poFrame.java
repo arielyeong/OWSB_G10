@@ -48,6 +48,7 @@ public class poFrame extends javax.swing.JFrame {
     
     public poFrame() {
         initComponents();
+        setLocationRelativeTo(null);
         prM.setPoManager(poM);
         poM.setPrManager(prM);
         supplierList.setModel(new DefaultListModel<>());

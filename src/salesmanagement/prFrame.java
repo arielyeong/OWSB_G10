@@ -45,6 +45,7 @@ public class prFrame extends javax.swing.JFrame {
     
     public prFrame() {
         initComponents();
+        setLocationRelativeTo(null);
         prM.setPoManager(poM);
         supplierList.setModel(new DefaultListModel<>());
         tCreatedDate.setText(currentDate.toString());
