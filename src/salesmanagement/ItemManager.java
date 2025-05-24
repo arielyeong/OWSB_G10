@@ -3,13 +3,15 @@ package salesmanagement;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.*;
+import usermanagement.SalesManager;
 
-public class ItemManager {
-    private List<Item> items;
+public class ItemManager extends SalesManager {
+    //private List<Item> items;
     private static final String ITEM_FILE = "item.txt";
 
     public ItemManager() {
-        items = new ArrayList<>();
+        //items = new ArrayList<>();
+        super();
         loadItems();
     }
 
@@ -25,7 +27,7 @@ public class ItemManager {
         }
     }
 
-    private void saveItems() {
+    /*private void saveItems() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ITEM_FILE))) {
             for (Item item : items) {
                 writer.write(item.toFileString());
@@ -34,8 +36,8 @@ public class ItemManager {
         } catch (IOException e) {
             System.out.println("Error saving items: " + e.getMessage());
         }
-    }
-
+    }*/
+    @Override
     public boolean addItem(Item item) {
         if (findItemById(item.getItemId()) != null) {
             return false; // Duplicate
@@ -44,7 +46,7 @@ public class ItemManager {
         saveItems();
         return true;
     }
-
+    @Override
     public boolean updateItem(Item updatedItem) {
         for (int i = 0; i < items.size(); i++) {
             Item existingItem = items.get(i);
@@ -62,7 +64,7 @@ public class ItemManager {
         }
         return false;
     }
-
+    @Override
     public boolean deleteItem(String itemId) {
         Item item = findItemById(itemId);
         if (item != null) {
@@ -73,18 +75,9 @@ public class ItemManager {
         return false;
     }
 
-    public Item findItemById(String itemId) {
+    /*public Item findItemById(String itemId) {
         for (Item item : items) {
             if (item.getItemId().equals(itemId)) {
-                return item;
-            }
-        }
-        return null;
-    }
-    
-    public Item findItemByName(String name) {
-        for (Item item : items) {
-            if (item.getItemName().equalsIgnoreCase(name)) {
                 return item;
             }
         }
@@ -103,6 +96,26 @@ public class ItemManager {
             }
         }
         return result;
-    }
+    }*/
     
+    @Override
+    public boolean addSupplier(salesmanagement.Supplier supplier){return false;}
+    @Override
+    public boolean deleteSupplier(String supplierId){return false;}
+    @Override
+    public boolean updateSupplier(Supplier updatedSupplier){return false;}
+    @Override
+    public boolean addSales(DailySales sales){return false;}
+    @Override
+    public boolean updateSales(DailySales sales){return false;}
+    @Override
+    public boolean deleteSales(String salesId){return false;}
+    @Override
+    public void saveEditedPr(pr editedPr) {}
+    @Override
+    public boolean deletePr(String prId){return false;}
+    @Override
+    public boolean addPr(pr pr){return false;}
+    @Override
+    public boolean updatePr(pr updatedPr){return false;}
 }

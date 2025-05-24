@@ -19,6 +19,7 @@ import javax.swing.table.DefaultTableModel;
 import salesmanagement.pr.PrItem;
 import usermanagement.User;
 import usermanagement.SalesManager;
+import usermanagement.SalesManagerUser;
 
 /**
  *
@@ -210,7 +211,7 @@ public class prFrame extends javax.swing.JFrame {
         smMap.clear(); 
         List<User> users = User.getalluser();
         for (User user : users) {
-            if (user instanceof SalesManager) {
+            if (user instanceof SalesManagerUser) {
                 smMap.put(user.getUserId(), user.getUsername());
             }
         }

@@ -22,7 +22,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import salesmanagement.pr.PrItem;
 import usermanagement.SalesManager;
+import usermanagement.SalesManagerUser;
 import usermanagement.PurchaseManager;
+import usermanagement.PurchaseManagerUser;
 import usermanagement.User;
 /**
  *
@@ -315,8 +317,9 @@ public class poFrame extends javax.swing.JFrame {
         smMap.clear(); 
         List<User> users = User.getalluser();
         for (User user : users) {
-            if (user instanceof SalesManager) {
+            if (user instanceof SalesManagerUser) {
                 smMap.put(user.getUserId(), user.getUsername());
+            } else {
             }
         }
     }
@@ -368,7 +371,7 @@ public class poFrame extends javax.swing.JFrame {
         pmMap.clear(); 
         List<User> users = User.getalluser();
         for (User user : users) {
-            if (user instanceof PurchaseManager) {
+            if (user instanceof PurchaseManagerUser) {
                 pmMap.put(user.getUserId(), user.getUsername());
             }
         }

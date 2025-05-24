@@ -2,6 +2,7 @@ package salesmanagement;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 /**
  *
@@ -11,11 +12,11 @@ import java.util.List;
 public class po {
     private String poId;
     private String prId;
-    private String pmId; //purchase manager
-    private String smId; //sales manager
+    private String pmId;
+    private String smId;
     private String supplierId;
     private pr.PrItem item;
-    private String poStatus; //PENDING, ORDERED, DELIVERED, COMPLETE
+    private String poStatus;
     private LocalDate createdDate;
     private LocalDate orderDate;
     private LocalDate deliveryDate;
@@ -36,6 +37,9 @@ public class po {
         this.deliveryDate = deliveryDate;
         this.invoiceDate = invoiceDate;
     }
+
+
+    
 
     public String getPoId() {
         return poId;
@@ -208,4 +212,8 @@ public class po {
                 "Failed to parse PO: '" + fileString + "'. Error: " + e.getMessage(), e);
         }
     }
+
+
+
+    
 }

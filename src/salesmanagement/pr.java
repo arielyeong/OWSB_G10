@@ -2,6 +2,7 @@ package salesmanagement;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 /**
  *
@@ -147,7 +148,7 @@ public class pr {
             String prId = parts[0];
             String smId = parts[1];
             String supplierId = "null".equals(parts[2]) ? null : parts[2];
-            String itemSection = parts[3].trim();  // ex: [I001,2]
+            String itemSection = parts[3].trim();  // [I001,2]
             String prStatus = parts[4];
             LocalDate createdDate = LocalDate.parse(parts[5], DATE_FORMATTER);
             LocalDate requiredDate = LocalDate.parse(parts[6], DATE_FORMATTER);
@@ -158,7 +159,7 @@ public class pr {
 
             PrItem prItem = null;
 
-            // Remove brackets
+            // ✅ Remove brackets
             if (itemSection.startsWith("[") && itemSection.endsWith("]")) {
                 itemSection = itemSection.substring(1, itemSection.length() - 1);
             }
@@ -187,6 +188,10 @@ public class pr {
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to parse PR: '" + fileString + "'. Error: " + e.getMessage(), e);
         }
+    }
+
+    public static void main(String[] args) {
+        
     }
     
 }
