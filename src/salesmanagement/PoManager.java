@@ -94,7 +94,7 @@ public class PoManager extends PurchaseManager {
     }*/
     @Override
     public boolean deletePo(String poId) {
-        po po = findPoById(poId);
+        po po = findPo(poId);
         if (po != null) {
             poList.remove(po);
             savePo();
@@ -104,7 +104,7 @@ public class PoManager extends PurchaseManager {
     }
     @Override
     public boolean deletePoByPrId(String prId){
-        po po = findPoByPrId(prId);
+        po po = findPo(prId);
         if(po != null){
             poList.remove(po);
             savePo();
@@ -115,7 +115,7 @@ public class PoManager extends PurchaseManager {
     
     @Override
     public boolean addPo(po po) {
-        if (findPoById(po.getPoId()) != null) { // if duplicate PO ID found
+        if (find(po.getPoId()) != null) { // if duplicate PO ID found
             return false; 
         }
         poList.add(po);  
