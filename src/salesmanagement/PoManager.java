@@ -115,7 +115,7 @@ public class PoManager extends PurchaseManager {
     
     @Override
     public boolean addPo(po po) {
-        if (find(po.getPoId()) != null) { // if duplicate PO ID found
+        if (findPo(po.getPoId()) != null) { // if duplicate PO ID found
             return false; 
         }
         poList.add(po);  
