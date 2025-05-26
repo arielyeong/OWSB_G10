@@ -21,9 +21,7 @@ import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import salesmanagement.pr.PrItem;
-import usermanagement.SalesManager;
 import usermanagement.SalesManagerUser;
-import usermanagement.PurchaseManager;
 import usermanagement.PurchaseManagerUser;
 import usermanagement.User;
 /**
@@ -705,7 +703,6 @@ public class poFrame extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(200, 238, 249));
 
         save.setText("Save");
-        save.setBackground(new java.awt.Color(255, 255, 255));
         save.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveActionPerformed(evt);
@@ -713,7 +710,6 @@ public class poFrame extends javax.swing.JFrame {
         });
 
         delete.setText("Delete");
-        delete.setBackground(new java.awt.Color(255, 255, 255));
         delete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteActionPerformed(evt);
@@ -721,7 +717,6 @@ public class poFrame extends javax.swing.JFrame {
         });
 
         add.setText("Generate PO");
-        add.setBackground(new java.awt.Color(255, 255, 255));
         add.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addActionPerformed(evt);
@@ -729,7 +724,6 @@ public class poFrame extends javax.swing.JFrame {
         });
 
         clear.setText("Clear");
-        clear.setBackground(new java.awt.Color(255, 255, 255));
         clear.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 clearActionPerformed(evt);
@@ -809,7 +803,7 @@ public class poFrame extends javax.swing.JFrame {
         jLabel11.setText("Total cost:");
         jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        tPoStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PENDING", "ORDERED", "SHIPPED", "COMPLETED" }));
+        tPoStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PENDING", "APPROVED", "ORDERED" }));
         tPoStatus.setForeground(new java.awt.Color(255, 255, 255));
         tPoStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -989,7 +983,6 @@ public class poFrame extends javax.swing.JFrame {
         });
 
         btnSearch.setText("Search");
-        btnSearch.setBackground(new java.awt.Color(255, 255, 255));
         btnSearch.setToolTipText("");
         btnSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1090,14 +1083,11 @@ public class poFrame extends javax.swing.JFrame {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel5Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabel2))
-                            .addGroup(jPanel5Layout.createSequentialGroup()
-                                .addGap(114, 114, 114)
-                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addContainerGap()
+                        .addComponent(jLabel2))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGap(114, 114, 114)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                         .addContainerGap(15, Short.MAX_VALUE)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1112,12 +1102,9 @@ public class poFrame extends javax.swing.JFrame {
                         .addGap(112, 112, 112)
                         .addComponent(search, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(btnSearch)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
-                        .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, 393, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(24, Short.MAX_VALUE))))
+                        .addComponent(btnSearch))
+                    .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, 393, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
