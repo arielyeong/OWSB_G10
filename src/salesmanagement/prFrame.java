@@ -20,6 +20,8 @@ import salesmanagement.pr.PrItem;
 import usermanagement.User;
 import usermanagement.SalesManager;
 import usermanagement.SalesManagerUser;
+import usermanagement.pmpage;
+import usermanagement.smpage;
 
 /**
  *
@@ -1115,8 +1117,13 @@ public class prFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_deleteActionPerformed
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        new MainMenu().setVisible(true);
-        this.dispose();
+        if (userRole.equalsIgnoreCase("SM")) {
+            new smpage().setVisible(true);
+            this.dispose();
+        } else if (userRole.equalsIgnoreCase("PM")) {
+            new pmpage().setVisible(true);
+            this.dispose();
+        }
     }//GEN-LAST:event_btnBackActionPerformed
 
     /**
