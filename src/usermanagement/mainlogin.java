@@ -16,6 +16,7 @@ import java.nio.file.*;
 
 public class mainlogin extends javax.swing.JFrame {
     private final String user_file = "user.txt";
+    private final String login_user = "loginUser.txt";
 
     /**
      * Creates new form mainlogin
@@ -204,6 +205,7 @@ public class mainlogin extends javax.swing.JFrame {
         try (BufferedReader br = new BufferedReader(new FileReader(user_file))) {
             String line;
             boolean found = false;
+            String userDetail = null;// for login user
 
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split("\\|");
@@ -215,12 +217,14 @@ public class mainlogin extends javax.swing.JFrame {
 
                     if (userid.equalsIgnoreCase(fileuserid) && passwd.equals(filepasswd) && role.equalsIgnoreCase(filerole)) {
                         found = true;
+                        userDetail = line; //get login user
                         break;
                     }//add if inccorect id or passwd 
                     }
                 } 
                 
             if (found) {
+                loginUser(userDetail);//save login user
                 switch (role) {
                     case "Admin" -> {
                         new adminpage().setVisible(true);
@@ -266,6 +270,21 @@ public class mainlogin extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "fail user file");
             }
         }
+    }
+    
+    private void loginUser(String userDetails){
+        try{
+            Path path = Paths.get(login_user);
+            if(!Files.exists(path)){
+                Files.createFile(path);
+            }
+            Files.deleteIfExists(Paths.get(login_user));
+            Files.write(Paths.get(login_user), userDetails.getBytes());
+            
+        }catch (IOException e){
+            JOptionPane.showMessageDialog(this, "Error login user"+ e.getMessage());
+        }
+
     }
     /*
     public void login(){
