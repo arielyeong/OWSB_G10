@@ -26,6 +26,7 @@ import usermanagement.SalesManagerUser;
 import usermanagement.PurchaseManager;
 import usermanagement.PurchaseManagerUser;
 import usermanagement.User;
+import usermanagement.pmpage;
 /**
  *
  * @author charlotte
@@ -1331,7 +1332,7 @@ public class poFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_tPurchaseManagerActionPerformed
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        new MainMenu().setVisible(true);
+        new pmpage().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnBackActionPerformed
 
