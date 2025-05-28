@@ -143,8 +143,6 @@ public class prFrame extends javax.swing.JFrame {
         updateStatusComboBox(userRole);
         String currentStatus = currentPr.getPrStatus();
         DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) tPrStatus.getModel();
-
-        // Check if current status is in model; if not, add it
         boolean found = false;
         for (int i = 0; i < model.getSize(); i++) {
             if (model.getElementAt(i).equalsIgnoreCase(currentStatus)) {
@@ -155,8 +153,6 @@ public class prFrame extends javax.swing.JFrame {
         if (!found && currentStatus != null) {
             model.addElement(currentStatus);
         }
-
-        // Now set the selected status
         tPrStatus.setSelectedItem(currentStatus);
 
 

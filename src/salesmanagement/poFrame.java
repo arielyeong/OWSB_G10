@@ -120,7 +120,7 @@ public class poFrame extends javax.swing.JFrame {
     //false=disable button
     private void setButton(boolean edit) {
         add.setEnabled(edit);
-        save.setEnabled(edit);
+//        save.setEnabled(edit);
         delete.setEnabled(edit);
     }
     
@@ -239,7 +239,21 @@ public class poFrame extends javax.swing.JFrame {
 
         tPrId.setText(currentPo.getPrId());
         tPoId.setText(currentPo.getPoId()); 
-        tPoStatus.setSelectedItem(currentPo.getPoStatus());
+        
+        updateStatusComboBox(userRole);
+        String currentStatus = currentPo.getPoStatus();
+        DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) tPoStatus.getModel();
+        boolean found = false;
+        for (int i = 0; i < model.getSize(); i++) {
+            if (model.getElementAt(i).equalsIgnoreCase(currentStatus)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found && currentStatus != null) {
+            model.addElement(currentStatus);
+        }
+        tPoStatus.setSelectedItem(currentStatus);
         if (currentPo.getSmId() != null) {
             updateSalesManagerSelection(currentPo.getSmId());
         }
@@ -837,7 +851,6 @@ public class poFrame extends javax.swing.JFrame {
         jLabel11.setText("Total cost:");
         jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        tPoStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "SUBMITTED", "APPROVED", "REJECTED", "ORDERED" }));
         tPoStatus.setForeground(new java.awt.Color(255, 255, 255));
         tPoStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
