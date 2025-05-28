@@ -519,10 +519,11 @@
             <Component class="javax.swing.JComboBox" name="tPoStatus">
               <Properties>
                 <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                  <StringArray count="3">
-                    <StringItem index="0" value="PENDING"/>
+                  <StringArray count="4">
+                    <StringItem index="0" value="SUBMITTED"/>
                     <StringItem index="1" value="APPROVED"/>
-                    <StringItem index="2" value="ORDERED"/>
+                    <StringItem index="2" value="REJECTED"/>
+                    <StringItem index="3" value="ORDERED"/>
                   </StringArray>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">

@@ -46,6 +46,12 @@ public class poFrame extends javax.swing.JFrame {
 
     public static final String PR_FILE = "pr.txt";
     public final String USER_LOGIN = "loginUser.txt";
+    private String userId = poM.getLoginUserId();
+    private String userRole = poM.getUserRoleFromId(userId);
+    
+    public static final String[] PM_STATUS = {"SUBMITTED"};
+    public static final String[] FM_STATUS = {"SUBMITTED","APPROVED","REJECTED", "ORDERED"};
+    
     
     public poFrame() {
         initComponents();
@@ -295,7 +301,7 @@ public class poFrame extends javax.swing.JFrame {
         String[] columnNames = {
             "PO ID", "PR ID", "Purchase Manager", "Sales Manager", "Supplier",
             "Item", "Quantity", "Unit Cost",
-            "Status", "Created Date", "Order Date"
+            "Status", "Created Date", 
         };
 
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
@@ -320,8 +326,7 @@ public class poFrame extends javax.swing.JFrame {
                     item.getQuantity(),
                     String.format("%.2f", item.getCost()),
                     p.getPoStatus(),
-                    p.getCreatedDate().format(po.DATE_FORMATTER),
-                    (p.getOrderDate() != null ? p.getOrderDate().format(po.DATE_FORMATTER) : "")
+                    p.getCreatedDate().format(po.DATE_FORMATTER)
                 });
             }
         }
@@ -594,10 +599,22 @@ public class poFrame extends javax.swing.JFrame {
             }
             updateTotalCost();
         }
+        
+        // --- STATUS
+    public void updateStatusComboBox(String userRole) {
+        if (userRole.equalsIgnoreCase("PM")) {
+            tPoStatus.setModel(new DefaultComboBoxModel<>(PM_STATUS));
+            setButton(true);
+        }  else if (userRole.equalsIgnoreCase("IM")) {
+            tPoStatus.setModel(new DefaultComboBoxModel<>(PM_STATUS));
+            setButton(false);
+        } else if (userRole.equalsIgnoreCase("FM")) {
+            tPoStatus.setModel(new DefaultComboBoxModel<>(FM_STATUS));
+            setButton(false);
+        }
+    }
     
     
-
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -820,7 +837,7 @@ public class poFrame extends javax.swing.JFrame {
         jLabel11.setText("Total cost:");
         jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        tPoStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "PENDING", "APPROVED", "ORDERED" }));
+        tPoStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "SUBMITTED", "APPROVED", "REJECTED", "ORDERED" }));
         tPoStatus.setForeground(new java.awt.Color(255, 255, 255));
         tPoStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
