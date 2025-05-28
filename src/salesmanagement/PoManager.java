@@ -105,7 +105,7 @@ public class PoManager extends PurchaseManager {
     }
     @Override
     public boolean deletePoByPrId(String prId){
-        po po = findPo(prId);
+        po po = findPo(prId, true);
         if(po != null){
             poList.remove(po);
             savePo();

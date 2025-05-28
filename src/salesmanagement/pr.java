@@ -13,7 +13,7 @@ public class pr {
     private String smId;
     private String supplierId;
     private PrItem item;
-    private String prStatus; //DRAFT, SUBMITTED, APPROVED, REJECTED
+    private String prStatus; //SUBMITTED, APPROVED, REJECTED
     private LocalDate createdDate;
     private LocalDate requiredDate;
     

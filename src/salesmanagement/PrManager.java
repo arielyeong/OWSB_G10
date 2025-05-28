@@ -96,6 +96,7 @@ public class PrManager extends SalesManager{
         if (pr != null) {
             prList.remove(pr);
             savePr();
+            poM.deletePoByPrId(prId);
             return true;
         }
         return false;

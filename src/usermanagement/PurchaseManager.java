@@ -74,18 +74,12 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         return null;
     }
     
-    public po findPo(String id, boolean byPrId){
-        if(id == null) return null;
-        String searchId = id.trim().toUpperCase();
+    public po findPo(String prId, boolean byPrId){
+        if(prId == null) return null;
+        String searchId = prId.trim().toUpperCase();
         for (po p : poList) {
-            if (byPrId) {
                 if(p.getPrId() != null && p.getPrId().trim().toUpperCase().equals(searchId)){
                     return p;
-                }
-            }else{
-                if (p.getPoId().trim().toUpperCase().equals(searchId)){
-                    return p;
-                }
             }
         }
         return null;
