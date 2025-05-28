@@ -40,9 +40,11 @@ public class prFrame extends javax.swing.JFrame {
     private SupplierManager sM = new SupplierManager();
     
     public static final String PR_FILE = "pr.txt";
+    public final String USER_LOGIN = "loginUser.txt";
     public static final String[] SM_STATUS = {"SUBMITTED"};
     public static final String[] PM_STATUS = {"SUBMITTED","APPROVED","REJECTED"};
-    private String userRole = "SM";
+    private String userId = poM.getLoginUserId();
+    private String userRole = poM.getUserRoleFromId(userId);
 
     
     public prFrame() {
@@ -115,7 +117,6 @@ public class prFrame extends javax.swing.JFrame {
             settings.setDateRangeLimits(currentDate, null);
         }
     }
-
     
     // --- PR RELATED METHODS 
     public void displayPr(int index) {
@@ -139,7 +140,25 @@ public class prFrame extends javax.swing.JFrame {
             updateSalesManagerSelection(currentPr.getSmId());
         }
 
-        tPrStatus.setSelectedItem(currentPr.getPrStatus());
+        updateStatusComboBox(userRole);
+        String currentStatus = currentPr.getPrStatus();
+        DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) tPrStatus.getModel();
+
+        // Check if current status is in model; if not, add it
+        boolean found = false;
+        for (int i = 0; i < model.getSize(); i++) {
+            if (model.getElementAt(i).equalsIgnoreCase(currentStatus)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found && currentStatus != null) {
+            model.addElement(currentStatus);
+        }
+
+        // Now set the selected status
+        tPrStatus.setSelectedItem(currentStatus);
+
 
         if (currentPr.getCreatedDate() != null) {
             tCreatedDate.setText(currentPr.getCreatedDate().format(pr.DATE_FORMATTER));
@@ -550,7 +569,6 @@ public class prFrame extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(200, 238, 249));
 
         save.setText("Save");
-        save.setBackground(new java.awt.Color(255, 255, 255));
         save.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveActionPerformed(evt);
@@ -558,7 +576,6 @@ public class prFrame extends javax.swing.JFrame {
         });
 
         delete.setText("Delete");
-        delete.setBackground(new java.awt.Color(255, 255, 255));
         delete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteActionPerformed(evt);
@@ -566,7 +583,6 @@ public class prFrame extends javax.swing.JFrame {
         });
 
         add.setText("Add");
-        add.setBackground(new java.awt.Color(255, 255, 255));
         add.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addActionPerformed(evt);
@@ -574,7 +590,6 @@ public class prFrame extends javax.swing.JFrame {
         });
 
         clear.setText("Clear");
-        clear.setBackground(new java.awt.Color(255, 255, 255));
         clear.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 clearActionPerformed(evt);
@@ -682,7 +697,7 @@ public class prFrame extends javax.swing.JFrame {
             }
         });
 
-        tPrStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "DRAFT", "SUBMITTED", "APPROVED", "REJECTED" }));
+        tPrStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "SUBMITTED", "APPROVE", "REJECT" }));
         tPrStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tPrStatusActionPerformed(evt);
@@ -779,7 +794,6 @@ public class prFrame extends javax.swing.JFrame {
         });
 
         btnSearch.setText("Search");
-        btnSearch.setBackground(new java.awt.Color(255, 255, 255));
         btnSearch.setToolTipText("");
         btnSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -793,10 +807,10 @@ public class prFrame extends javax.swing.JFrame {
         header.setFont(new java.awt.Font("Sitka Text", 1, 24)); // NOI18N
         header.setToolTipText("");
 
+        btnBack.setText("Back");
         btnBack.setBackground(new java.awt.Color(102, 102, 102));
         btnBack.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
         btnBack.setForeground(new java.awt.Color(255, 255, 255));
-        btnBack.setText("Back");
         btnBack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBackActionPerformed(evt);
@@ -1047,7 +1061,9 @@ public class prFrame extends javax.swing.JFrame {
             String status = (String) tPrStatus.getSelectedItem();
             String supplierId = selectedSupplier.split(" - ")[0].trim();
             LocalDate reqDate = tRequiredDate.getDate();
-            
+            String dateText = tCreatedDate.getText();
+            LocalDate createDate = LocalDate.parse(dateText);
+
             String selectedItemText = (String) tItems.getSelectedItem();
             String selectedItemId = selectedItemText.split(" - ")[0].trim();
             int quantity = Integer.parseInt(tItemQuantity.getText().trim());
@@ -1072,7 +1088,7 @@ public class prFrame extends javax.swing.JFrame {
                 prItem,
                 status,
                 currentDate,
-                reqDate
+                createDate
             );
 
             prM.saveEditedPr(updatedPr); 

@@ -1,6 +1,8 @@
 package usermanagement;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -29,7 +31,7 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
     
     public static final String FILE_PATH = "po.txt";
     private final LocalDate currentDate = LocalDate.now();
-
+    
 
     
     public abstract boolean deletePo(String poId);
@@ -61,7 +63,7 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         return null;
     }
     
-    public po findPo(String poId) {//
+    public po findPo(String poId) {
         if (poId == null) return null;
         String searchId = poId.trim().toUpperCase();
         for (po p : poList) {
@@ -110,7 +112,7 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         return String.format("PO%03d", maxId + 1);
     }
     
-    public po createPoFromPr(pr approvedPr) {
+    public po createPoFromPr(pr approvedPr, String createdBy) {
         List<pr> approvedPrs = prM.getApprovedPrs();
         //List<pr> approvedPrs = getApprovedPrs();
         boolean isValid = approvedPrs.stream()
@@ -125,7 +127,7 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         po newPo = new po(
             newPoId,
             approvedPr.getPrId(),
-            null,
+            createdBy,
             approvedPr.getSmId(),
             approvedPr.getSupplierId(),
             prItem, 

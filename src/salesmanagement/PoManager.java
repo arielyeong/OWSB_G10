@@ -21,6 +21,7 @@ public class PoManager extends PurchaseManager {
     //private List<po> poList;
     //private List<pr> prList;
     public static final String FILE_PATH = "po.txt";
+    public static final String USER_LOGIN = "loginUser.txt";
     ItemManager iM = new ItemManager();
     //private PrManager prM;
     
@@ -144,6 +145,39 @@ public class PoManager extends PurchaseManager {
         return false;
     }
     
+    public String getLoginUserId() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USER_LOGIN))) {
+            String line = reader.readLine();
+            if (line != null && !line.trim().isEmpty()) {
+                String[] parts = line.split("\\|");
+                if (parts.length > 0) {
+                    return parts[0];
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading login user file: " + e.getMessage());
+        }
+        return null; 
+    }
+    
+    public String getUserRoleFromId(String userId) {
+        if (userId == null || userId.length() < 2) {
+            return null;
+        }
+        StringBuilder role = new StringBuilder();
+        for (int i = 0; i < userId.length(); i++) {
+            char ch = userId.charAt(i);
+            if (Character.isLetter(ch)) {
+                role.append(ch);
+            } else {
+                break;
+            }
+        }
+
+        return role.toString();
+    }
+
+    
     /*public String generateNewPoId() {
         int maxId = poList.stream()
             .map(p -> p.getPoId().replaceAll("\\D+", ""))
@@ -154,8 +188,9 @@ public class PoManager extends PurchaseManager {
         return String.format("PO%03d", maxId + 1);
     }*
     
-    public po createPoFromPr(pr approvedPr) {//
+    public po createPoFromPr(pr approvedPr, String createdBy) {
         List<pr> approvedPrs = prM.getApprovedPrs();
+        //List<pr> approvedPrs = getApprovedPrs();
         boolean isValid = approvedPrs.stream()
             .anyMatch(p -> p.getPrId().equals(approvedPr.getPrId()));
 
@@ -168,7 +203,7 @@ public class PoManager extends PurchaseManager {
         po newPo = new po(
             newPoId,
             approvedPr.getPrId(),
-            null,
+            createdBy,
             approvedPr.getSmId(),
             approvedPr.getSupplierId(),
             prItem, 

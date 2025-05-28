@@ -43,7 +43,9 @@ public class poFrame extends javax.swing.JFrame {
     PrManager prM = new PrManager();
     PoManager poM = new PoManager();
 
+
     public static final String PR_FILE = "pr.txt";
+    public final String USER_LOGIN = "loginUser.txt";
     
     public poFrame() {
         initComponents();
@@ -155,6 +157,20 @@ public class poFrame extends javax.swing.JFrame {
         });
     }
 
+    public String getLoggedInUserId() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USER_LOGIN))) {
+            String line = reader.readLine();
+            if (line != null && !line.trim().isEmpty()) {
+                String[] parts = line.split("\\|");
+                if (parts.length > 0) {
+                    return parts[0]; // Return the first part, e.g., "PM001"
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading login user file: " + e.getMessage());
+        }
+        return null; // Return null if reading fails or file is empty
+    }
     
     
     // --- PR dialog
@@ -1148,8 +1164,12 @@ public class poFrame extends javax.swing.JFrame {
          try {
             pr selectedPr = approvedPrDialog();
             if (selectedPr == null) return;
-
-            po newPo = poM.createPoFromPr(selectedPr);
+            String pmId = poM.getLoginUserId();
+            if (pmId == null) {
+                JOptionPane.showMessageDialog(this, "Unable to retrieve logged-in user ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            po newPo = poM.createPoFromPr(selectedPr, pmId);
 
             JOptionPane.showMessageDialog(this, "PO created from PR successfully! PO ID: " + newPo.getPoId());
             loadTable(); // Refresh PO table
@@ -1225,6 +1245,9 @@ public class poFrame extends javax.swing.JFrame {
             
             
             String supplierId = selectedSupplier.split(" - ")[0].trim();
+            
+            String dateText = tCreatedDate.getText();
+            LocalDate createDate = LocalDate.parse(dateText);
             LocalDate orderDate = tOrderDate.getDate();
             LocalDate deliveryDate = null;
             if (tDeliveryDate.getDate() != null) {
@@ -1256,7 +1279,7 @@ public class poFrame extends javax.swing.JFrame {
                 supplierId,
                 prItem,
                 status,
-                currentDate,
+                createDate,
                 orderDate,
                 deliveryDate, 
                 invoiceDate  
