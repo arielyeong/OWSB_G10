@@ -50,7 +50,7 @@ public class poFrame extends javax.swing.JFrame {
     private String userRole = poM.getUserRoleFromId(userId);
     
     public static final String[] PM_STATUS = {"SUBMITTED"};
-    public static final String[] FM_STATUS = {"SUBMITTED","APPROVED","REJECTED", "ORDERED"};
+    public static final String[] FM_STATUS = {"SUBMITTED","APPROVED","REJECTED","ORDERED"};
     
     
     public poFrame() {
@@ -619,7 +619,7 @@ public class poFrame extends javax.swing.JFrame {
         if (userRole.equalsIgnoreCase("PM")) {
             tPoStatus.setModel(new DefaultComboBoxModel<>(PM_STATUS));
             setButton(true);
-        }  else if (userRole.equalsIgnoreCase("IM")) {
+        }  else if (userRole.equalsIgnoreCase("IM") || userRole.equalsIgnoreCase("SM")) {
             tPoStatus.setModel(new DefaultComboBoxModel<>(PM_STATUS));
             setButton(false);
         } else if (userRole.equalsIgnoreCase("FM")) {
