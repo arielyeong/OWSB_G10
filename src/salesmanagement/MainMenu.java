@@ -6,7 +6,7 @@ public class MainMenu extends JFrame {
 
     public MainMenu() {
         setTitle("OWSB Purchase Order Management System");
-        setSize(500, 400);
+        setSize(500, 500);
         setLayout(null);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -33,8 +33,12 @@ public class MainMenu extends JFrame {
         btnPr.setBounds(150, 250, 200, 40);
         add(btnPr);
 
+        JButton btnViewLowStock = new JButton("View Low Stock Items");
+        btnViewLowStock.setBounds(150, 300, 200, 40);
+        add(btnViewLowStock);
+
         JButton btnExit = new JButton("Exit");
-        btnExit.setBounds(150, 300, 200, 40);
+        btnExit.setBounds(150, 350, 200, 40);
         add(btnExit);
 
         // Action Listeners
@@ -55,6 +59,11 @@ public class MainMenu extends JFrame {
         
         btnPr.addActionListener(e -> {
             new prFrame().setVisible(true);
+            dispose();
+        });
+        
+        btnViewLowStock.addActionListener(e -> {
+            new ViewItemBelowROL().setVisible(true);
             dispose();
         });
 

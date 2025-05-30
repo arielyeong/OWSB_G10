@@ -1,5 +1,12 @@
 I001|LED TV 42"|Groceries|Unit|1500.00|45|S003
 I002|Basmati Rice 5kg|Groceries|Bag|30.00|80|S003
-I003|Laptop Bag|Clothing|Pc|60.00|35|S001;S003
+I003|Laptop Bag|Other|Pc|60.00|35|S001;S003
 I004|Men's Jeans|Clothing|Pc|80.00|50|S004
-I005|T-shirt|Other|Pc|40.00|60|S001
+I005|T-shirt|Clothing|Pc|40.00|60|S001
+I006|Bluetooth Speaker|Electronic|Pc|120.00|25|S002
+I007|Cooking Oil 1L|Groceries|Bottle|12.50|100|S003
+I008|Women's Jacket|Clothing|Pc|150.00|6|S004
+I009|Wireless Mouse|Electronic|Pc|45.00|70|S001;S002;S006
+I010|Office Paper A4 100pg|Other|Ream|15.00|90|S005
+I011|Notebook A5 100pg|Other|Book|4.50|190|S003;S005
+I012|USB Flash Drive 32GB|Electronic|Pc|25.00|150|S001;S006

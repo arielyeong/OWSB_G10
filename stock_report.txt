@@ -1,0 +1,12 @@
+STOCK REPORT - 2025-05-27
+==================================================
+Item ID    | Item Name                      | Category        | Stock     
+-------------------------------------------------
+I001       | LED TV 42"                     | Groceries       | 45        
+I002       | Basmati Rice 5kg               | Groceries       | 80        
+I003       | Laptop Bag                     | Clothing        | 35        
+I004       | Men's Jeans                    | Clothing        | 50        
+I005       | T-shirt                        | Other           | 60        
+==================================================
+Low Stock Items (Below 10 units):
+No items below threshold.
