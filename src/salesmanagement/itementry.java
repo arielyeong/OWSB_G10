@@ -933,16 +933,39 @@ public class itementry extends javax.swing.JFrame {
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
         String id = textSearch.getText().trim();
 
-        if (itemManager.deleteItem(id)) {
-            removeItemSupplierLinks(id); 
-            saveItemsToFile();
-            JOptionPane.showMessageDialog(this, "Item deleted successfully!");
-            clearFields();
-            refreshTable();
-            loadDataFromFiles();
-        } else {
-            JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+            // Validate that an ID has been entered
+            if (id.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter an Item ID to delete.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Check if the item exists
+            if (itemManager.findItemById(id) == null) {
+                JOptionPane.showMessageDialog(this, "Item not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Show confirmation dialog
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to delete this item?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            // Proceed with deletion only if the user clicks "Yes"
+            if (confirm == JOptionPane.YES_OPTION) {
+                if (itemManager.deleteItem(id)) {
+                    removeItemSupplierLinks(id); 
+                    saveItemsToFile();
+                    JOptionPane.showMessageDialog(this, "Item deleted successfully!");
+                    clearFields();
+                    refreshTable();
+                    loadDataFromFiles();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to delete item!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
@@ -1020,6 +1043,8 @@ public class itementry extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(itementry.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
 

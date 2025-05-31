@@ -10,3 +10,4 @@ I009|Wireless Mouse|Electronic|Pc|45.00|70|S001;S002;S006
 I010|Office Paper A4 100pg|Other|Ream|15.00|90|S005
 I011|Notebook A5 100pg|Other|Book|4.50|190|S003;S005
 I012|USB Flash Drive 32GB|Electronic|Pc|25.00|150|S001;S006
+I013|Item 13|Groceries|Pc|30.00|50|S001;S002;S003;S005

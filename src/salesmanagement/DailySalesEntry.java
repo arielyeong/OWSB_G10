@@ -132,7 +132,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
         txtQtySold.setText("");
         txtTotalPrice.setText("");
         textSearch.setText("");
-        datePicker1.setDate(null);
+        datePicker1.setDate(LocalDate.now()); // Set default to today’s date
     }
     
     private void displaySale(DailySales sale) {
@@ -692,146 +692,148 @@ public class DailySalesEntry extends javax.swing.JFrame {
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         
         try {
-            String saleId = txtSaleId1.getText().trim();
-            String itemId = txtItemId.getText().trim();
-            String qtyText = txtQtySold.getText().trim();
-            String priceText = txtTotalPrice.getText().trim();
-            LocalDate localDate = datePicker1.getDate(); 
-            Date dateObj = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        String saleId = txtSaleId1.getText().trim();
+        String itemId = txtItemId.getText().trim();
+        String qtyText = txtQtySold.getText().trim();
+        String priceText = txtTotalPrice.getText().trim();
+        LocalDate localDate = datePicker1.getDate();
 
-            // validation
-            if (saleId.isEmpty() || itemId.isEmpty() || qtyText.isEmpty() || priceText.isEmpty() || dateObj == null) {
-                JOptionPane.showMessageDialog(this, "All fields must be filled!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            if (salesManager.findSalesById(saleId) != null) {
-                JOptionPane.showMessageDialog(this, "Sales ID already exists!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            int qtyToSell = Integer.parseInt(qtyText);
-            double totalPrice = Double.parseDouble(priceText);
-
-            if (qtyToSell <= 0) {
-                JOptionPane.showMessageDialog(this, "Quantity must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (totalPrice <= 0) {
-                JOptionPane.showMessageDialog(this, "Total price must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            Item selectedItem = findItemById(itemId);
-            if (selectedItem == null) {
-                JOptionPane.showMessageDialog(this, "Invalid Item ID!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            if (qtyToSell > selectedItem.getStockQuantity()) {
-                JOptionPane.showMessageDialog(this, "Not enough stock!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // create new record
-            String date = new SimpleDateFormat("yyyy-MM-dd").format(dateObj);
-
-            DailySales sale = new DailySales(
-                saleId,
-                selectedItem.getItemId(),
-                selectedItem.getItemName(),
-                date,
-                qtyToSell,
-                totalPrice
-            );
-
-            if (salesManager.addSales(sale)) {
-                selectedItem.setStockQuantity(selectedItem.getStockQuantity() - qtyToSell);
-                saveItemsToFile();
-                JOptionPane.showMessageDialog(this, "Sale added successfully!");
-                clearFields();
-                refreshTable();
-                refreshItemTable();
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to add sale!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Quantity and Price must be valid numbers!", "Format Error", JOptionPane.ERROR_MESSAGE);
+        // Validation
+        if (saleId.isEmpty() || itemId.isEmpty() || qtyText.isEmpty() || priceText.isEmpty() || localDate == null) {
+            JOptionPane.showMessageDialog(this, "All fields must be filled, including the date!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        Date dateObj = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        if (salesManager.findSalesById(saleId) != null) {
+            JOptionPane.showMessageDialog(this, "Sales ID already exists!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int qtyToSell = Integer.parseInt(qtyText);
+        double totalPrice = Double.parseDouble(priceText);
+
+        if (qtyToSell <= 0) {
+            JOptionPane.showMessageDialog(this, "Quantity must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (totalPrice <= 0) {
+            JOptionPane.showMessageDialog(this, "Total price must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Item selectedItem = findItemById(itemId);
+        if (selectedItem == null) {
+            JOptionPane.showMessageDialog(this, "Invalid Item ID!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (qtyToSell > selectedItem.getStockQuantity()) {
+            JOptionPane.showMessageDialog(this, "Not enough stock!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Create new record
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(dateObj);
+
+        DailySales sale = new DailySales(
+            saleId,
+            selectedItem.getItemId(),
+            selectedItem.getItemName(),
+            date,
+            qtyToSell,
+            totalPrice
+        );
+
+        if (salesManager.addSales(sale)) {
+            selectedItem.setStockQuantity(selectedItem.getStockQuantity() - qtyToSell);
+            saveItemsToFile();
+            JOptionPane.showMessageDialog(this, "Sale added successfully!");
+            clearFields();
+            refreshTable();
+            refreshItemTable();
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to add sale!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Quantity and Price must be valid numbers!", "Format Error", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
         try {
-            String saleId = txtSaleId1.getText().trim();
-            String itemId = txtItemId.getText().trim();
-            String qtyText = txtQtySold.getText().trim();
-            String priceText = txtTotalPrice.getText().trim();
-            LocalDate localDate = datePicker1.getDate(); // this returns LocalDate
-            Date dateObj = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        String saleId = txtSaleId1.getText().trim();
+        String itemId = txtItemId.getText().trim();
+        String qtyText = txtQtySold.getText().trim();
+        String priceText = txtTotalPrice.getText().trim();
+        LocalDate localDate = datePicker1.getDate();
 
-            // validation
-            if (saleId.isEmpty() || itemId.isEmpty() || qtyText.isEmpty() || priceText.isEmpty() || dateObj == null) {
-                JOptionPane.showMessageDialog(this, "All fields must be filled!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            DailySales oldSale = salesManager.findSalesById(saleId);
-            if (oldSale == null) {
-                JOptionPane.showMessageDialog(this, "Sales record not found!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            int oldQtySold = oldSale.getQuantitySold();
-            int newQtySold = Integer.parseInt(qtyText);
-            double totalPrice = Double.parseDouble(priceText);
-
-            if (newQtySold <= 0) {
-                JOptionPane.showMessageDialog(this, "Quantity must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (totalPrice <= 0) {
-                JOptionPane.showMessageDialog(this, "Total price must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            Item item = findItemById(itemId);
-            if (item == null) {
-                JOptionPane.showMessageDialog(this, "Invalid Item ID!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // check stock movement/changes
-            int newStock = item.getStockQuantity() + oldQtySold - newQtySold;
-            if (newStock < 0) {
-                JOptionPane.showMessageDialog(this, "Not enough stock after update!", "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // update
-            String date = new SimpleDateFormat("yyyy-MM-dd").format(dateObj);
-
-            DailySales newSale = new DailySales(
-                saleId,
-                itemId,
-                txtItemName.getText(),
-                date,
-                newQtySold,
-                totalPrice
-            );
-
-            if (salesManager.updateSales(newSale)) {
-                item.setStockQuantity(newStock);
-                saveItemsToFile();
-                JOptionPane.showMessageDialog(this, "Sale updated successfully!");
-                clearFields();
-                refreshTable();
-                refreshItemTable();
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to update sale!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Quantity and Price must be valid numbers!", "Format Error", JOptionPane.ERROR_MESSAGE);
+        // Validation
+        if (saleId.isEmpty() || itemId.isEmpty() || qtyText.isEmpty() || priceText.isEmpty() || localDate == null) {
+            JOptionPane.showMessageDialog(this, "All fields must be filled, including the date!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+
+        Date dateObj = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        DailySales oldSale = salesManager.findSalesById(saleId);
+        if (oldSale == null) {
+            JOptionPane.showMessageDialog(this, "Sales record not found!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int oldQtySold = oldSale.getQuantitySold();
+        int newQtySold = Integer.parseInt(qtyText);
+        double totalPrice = Double.parseDouble(priceText);
+
+        if (newQtySold <= 0) {
+            JOptionPane.showMessageDialog(this, "Quantity must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (totalPrice <= 0) {
+            JOptionPane.showMessageDialog(this, "Total price must be greater than 0!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Item item = findItemById(itemId);
+        if (item == null) {
+            JOptionPane.showMessageDialog(this, "Invalid Item ID!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Check stock movement/changes
+        int newStock = item.getStockQuantity() + oldQtySold - newQtySold;
+        if (newStock < 0) {
+            JOptionPane.showMessageDialog(this, "Not enough stock after update!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Update
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(dateObj);
+
+        DailySales newSale = new DailySales(
+            saleId,
+            itemId,
+            txtItemName.getText(),
+            date,
+            newQtySold,
+            totalPrice
+        );
+
+        if (salesManager.updateSales(newSale)) {
+            item.setStockQuantity(newStock);
+            saveItemsToFile();
+            JOptionPane.showMessageDialog(this, "Sale updated successfully!");
+            clearFields();
+            refreshTable();
+            refreshItemTable();
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to update sale!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Quantity and Price must be valid numbers!", "Format Error", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
@@ -951,6 +953,8 @@ public class DailySalesEntry extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(DailySalesEntry.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
 
