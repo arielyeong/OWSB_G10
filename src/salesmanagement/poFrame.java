@@ -117,8 +117,14 @@ public class poFrame extends javax.swing.JFrame {
         tTotalCost.setEnabled(edit);
     }
     
+    private void setDateEditable(boolean edit) {
+        tOrderDate.setEnabled(edit);
+        tDeliveryDate.setEnabled(edit);
+        tInvoiceDate.setEnabled(edit);
+    }
+    
     //false=disable button
-    private void setButton(boolean edit) {
+    private void setButton(boolean edit) { //FM
         add.setEnabled(edit);
 //        save.setEnabled(edit);
         delete.setEnabled(edit);
@@ -254,6 +260,12 @@ public class poFrame extends javax.swing.JFrame {
             model.addElement(currentStatus);
         }
         tPoStatus.setSelectedItem(currentStatus);
+        if ("ORDERED".equalsIgnoreCase(currentStatus)) {
+            setDateEditable(true);
+        } else {
+            setDateEditable(false);
+        }
+
         if (currentPo.getSmId() != null) {
             updateSalesManagerSelection(currentPo.getSmId());
         }
@@ -273,13 +285,22 @@ public class poFrame extends javax.swing.JFrame {
 
         if (currentPo.getOrderDate() != null) {
             tOrderDate.setDate(currentPo.getOrderDate());
+        } else {
+            tOrderDate.setDate(null);
         }
-        if (currentPo.getOrderDate() != null) {
-            tDeliveryDate.setDate(currentPo.getOrderDate());
+
+        if (currentPo.getDeliveryDate() != null) {
+            tDeliveryDate.setDate(currentPo.getDeliveryDate());
+        } else {
+            tDeliveryDate.setDate(null);
         }
-        if (currentPo.getOrderDate() != null) {
-            tDeliveryDate.setDate(currentPo.getOrderDate());
+
+        if (currentPo.getInvoiceDate() != null) {
+            tInvoiceDate.setDate(currentPo.getInvoiceDate());
+        } else {
+            tInvoiceDate.setDate(null);
         }
+
 
         if (currentPo.getSupplierId() != null) {
             updateSupplierSelection(currentPo.getSupplierId());
@@ -1202,8 +1223,9 @@ public class poFrame extends javax.swing.JFrame {
             po newPo = poM.createPoFromPr(selectedPr, pmId);
 
             JOptionPane.showMessageDialog(this, "PO created from PR successfully! PO ID: " + newPo.getPoId());
-            loadTable(); // Refresh PO table
             clearText();
+            loadTable(); // Refresh PO table
+            displayPo(0);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error creating PO: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
              System.out.println(e);
@@ -1240,9 +1262,8 @@ public class poFrame extends javax.swing.JFrame {
                 return;
             }
         }
-        String searchType = isPrSearch ? "PR" : "PO";
         JOptionPane.showMessageDialog(this, 
-            searchId + " not found as " + searchType + " ID",
+            searchId + " not found",
             "Not Found",
             JOptionPane.WARNING_MESSAGE);
     }//GEN-LAST:event_btnSearchActionPerformed

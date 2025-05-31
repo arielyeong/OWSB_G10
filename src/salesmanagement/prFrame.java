@@ -1052,17 +1052,27 @@ public class prFrame extends javax.swing.JFrame {
 
     private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
         try {
-            String selectedManager = (String) tSalesManager.getSelectedItem();
             String selectedSupplier = supplierList.getSelectedValue();
             String status = (String) tPrStatus.getSelectedItem();
             String supplierId = selectedSupplier.split(" - ")[0].trim();
-            LocalDate reqDate = tRequiredDate.getDate();
             String dateText = tCreatedDate.getText();
             LocalDate createDate = LocalDate.parse(dateText);
 
             String selectedItemText = (String) tItems.getSelectedItem();
             String selectedItemId = selectedItemText.split(" - ")[0].trim();
-            int quantity = Integer.parseInt(tItemQuantity.getText().trim());
+            
+            String quantityText = tItemQuantity.getText().trim();
+            int quantity;
+            try {
+                quantity = Integer.parseInt(quantityText);
+                if (quantity <= 0) {
+                    JOptionPane.showMessageDialog(this, "Quantity must be greater than 0.", "Invalid Quantity", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid integer for quantity.", "Invalid Quantity", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             Item selectedItem = iM.findItemById(selectedItemId);
             
             String smId = getSelectedSalesManagerId();
@@ -1074,7 +1084,7 @@ public class prFrame extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Selected item not found.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
+            
             PrItem prItem = new PrItem(selectedItem, quantity);
 
             pr updatedPr = new pr(
