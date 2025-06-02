@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
-
+import usermanagement.smpage;
 /**
  *
  * @author Yeong Huey Yee
@@ -256,7 +256,7 @@ public class ViewItemBelowROL extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBack8btnBack1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBack8btnBack1ActionPerformed
-        new MainMenu().setVisible(true);
+        new smpage().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnBack8btnBack1ActionPerformed
 

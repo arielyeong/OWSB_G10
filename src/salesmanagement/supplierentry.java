@@ -14,6 +14,7 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
+import usermanagement.smpage;
 
 
 /**
@@ -1016,7 +1017,7 @@ Supplier supplier = new Supplier(supplierId, name, phone, email, address, bankNa
     }//GEN-LAST:event_txtSuppAddressActionPerformed
 
     private void btnBack1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBack1ActionPerformed
-        new MainMenu().setVisible(true);
+        new smpage().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnBack1ActionPerformed
 

@@ -14,6 +14,8 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
+import usermanagement.smpage;
+
 
 /**
  *
@@ -772,7 +774,7 @@ public class itementry extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        new MainMenu().setVisible(true);
+        new smpage().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnBackActionPerformed
 

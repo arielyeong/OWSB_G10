@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.swing.JOptionPane;
+import usermanagement.smpage;
 
 
 /**
@@ -656,7 +657,7 @@ public class DailySalesEntry extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        new MainMenu().setVisible(true);
+        new smpage().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnBackActionPerformed
 
