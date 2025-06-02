@@ -1,8 +1,6 @@
 package usermanagement;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -21,8 +19,7 @@ import static salesmanagement.PoManager.FILE_PATH;
  *
  * @author charlotte
  */
-public abstract class PurchaseManager /*extends User*/ {//inheritance
-    //private String approvalLimit;
+public abstract class PurchaseManager{//inheritance
     
     protected PrManager prM;
     protected List<po> poList;
@@ -31,7 +28,7 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
     
     public static final String FILE_PATH = "po.txt";
     private final LocalDate currentDate = LocalDate.now();
-    
+
 
     
     public abstract boolean deletePo(String poId);
@@ -40,9 +37,7 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
     public abstract boolean deletePoByPrId(String prId);
 
 
-    public PurchaseManager(/*String userId, String username, String userPhone, String userEmail, String userAddress, String userPw, String userRole, String approvalLimit*/) {
-        //super(userId, username, userPhone, userEmail, userAddress, userPw, "Purchase Manager");
-        //this.approvalLimit = approvalLimit;
+    public PurchaseManager() {
         prList = new ArrayList<>();
         poList = new ArrayList<>();
     }
@@ -52,11 +47,11 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         this.prM = prM;
     }
     
-    public List<po> getAllPo() {//
+    public List<po> getAllPo() {
         return poList;
     }
     
-    public po getPo(int index) {//
+    public po getPo(int index) {
         if (index >= 0 && index < poList.size()) {
             return poList.get(index);
         }
@@ -74,18 +69,24 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         return null;
     }
     
-    public po findPo(String prId, boolean byPrId){
-        if(prId == null) return null;
-        String searchId = prId.trim().toUpperCase();
+    public po findPo(String id, boolean byPrId){
+        if(id == null) return null;
+        String searchId = id.trim().toUpperCase();
         for (po p : poList) {
+            if (byPrId) {
                 if(p.getPrId() != null && p.getPrId().trim().toUpperCase().equals(searchId)){
                     return p;
+                }
+            }else{
+                if (p.getPoId().trim().toUpperCase().equals(searchId)){
+                    return p;
+                }
             }
         }
         return null;
     }
     
-    protected void savePo() {//
+    protected void savePo() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (po po: poList) {
                 writer.write(po.toFileString()); 
@@ -106,9 +107,8 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         return String.format("PO%03d", maxId + 1);
     }
     
-    public po createPoFromPr(pr approvedPr, String createdBy) {
+    public po createPoFromPr(pr approvedPr) {
         List<pr> approvedPrs = prM.getApprovedPrs();
-        //List<pr> approvedPrs = getApprovedPrs();
         boolean isValid = approvedPrs.stream()
             .anyMatch(p -> p.getPrId().equals(approvedPr.getPrId()));
 
@@ -121,7 +121,7 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         po newPo = new po(
             newPoId,
             approvedPr.getPrId(),
-            createdBy,
+            null,
             approvedPr.getSmId(),
             approvedPr.getSupplierId(),
             prItem, 
@@ -134,23 +134,6 @@ public abstract class PurchaseManager /*extends User*/ {//inheritance
         addPo(newPo);
         return newPo;
     }
-    /*@Override
-    public String toString(){
-        return super.toString()+"|"+ approvalLimit;
-    }
-    @Override
-    public boolean adduser(){return false;}
-    @Override
-    public boolean deleteuser(String userId){return false;}
-    @Override
-    public boolean edituser(){return false;}
-
-    public String getApprovalLimit() {
-        return approvalLimit;
-    }
-
-    public void setApprovalLimit(String approvalLimit) {
-        this.approvalLimit = approvalLimit;
-    }*/
+    
     
 }

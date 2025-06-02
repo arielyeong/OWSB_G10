@@ -12,6 +12,9 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.List;
+import static usermanagement.User.getalluser;
+import usermanagement.*;
+
 
 /**
  *
@@ -21,21 +24,21 @@ public class adminpage extends javax.swing.JFrame {
     private final String user_file = "user.txt";
     private List<User> allUsers = new ArrayList<>();
     private int currentUserIndex = 0;
-    //private Administrator admin;
-    //private int countuser = 1;
-    //private List<User> userlist = new ArrayList<>();
     
     private void clearfileds(){
-        useridtxt.setText("");
+        useridtxt.setText(generateUserid(rolebox.getSelectedItem().toString()));
         usernametxt.setText("");
         passwdtxt.setText("");
         userphntxt.setText("");
         useremailtxt.setText("");
         useraddresstxt.setText("");
         rolebox.setSelectedIndex(0);
+        extradetails(rolebox.getSelectedItem().toString());
         saleregionbox.setSelectedIndex(0);
         approvelimitbox.setSelectedIndex(0);
+
     }
+    
     private String generateUserid(String role){
         //return String.format("U%03d", countuser++);//admin.getUserId().size()+1);
         String prefix = "";
@@ -98,10 +101,7 @@ public class adminpage extends javax.swing.JFrame {
      */
     public adminpage() {
         initComponents();
-        //admin = new Administrator();
-        //this.admin = admin;
         useridtxt.setText(generateUserid(rolebox.getSelectedItem().toString()));
-        //adduser();
         extradetails(rolebox.getSelectedItem().toString());
         usertxtarea.setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));
         loadAllUsers();
@@ -133,8 +133,10 @@ public class adminpage extends javax.swing.JFrame {
 
         if (user instanceof SalesManagerUser){
             sb.append(String.format(format, "Sales Region",((SalesManagerUser)user).getSalesRegion()));
-        }else if(user instanceof PurchaseManagerUser || user instanceof InventoryManager){
+        }else if(user instanceof PurchaseManagerUser){
             sb.append(String.format(format, "Approve Limit",((PurchaseManagerUser)user).getApprovalLimit()));
+        }else if(user instanceof InventoryManager){
+            sb.append(String.format(format, "Approve Limit",((InventoryManager)user).getApprovalLimit()));
         }
         
         usertxtarea.setText(sb.toString());
@@ -161,7 +163,6 @@ public class adminpage extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         header = new javax.swing.JLabel();
-        btnBack = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jLabel12 = new javax.swing.JLabel();
@@ -178,10 +179,11 @@ public class adminpage extends javax.swing.JFrame {
         userphntxt = new javax.swing.JTextField();
         useremailtxt = new javax.swing.JTextField();
         useraddresstxt = new javax.swing.JTextField();
-        btnsave = new javax.swing.JButton();
         passwdtxt = new javax.swing.JPasswordField();
         btnedit = new javax.swing.JButton();
         btndelete = new javax.swing.JButton();
+        btnadd = new javax.swing.JButton();
+        btnsave = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         saleregionbox = new javax.swing.JComboBox<>();
@@ -206,16 +208,6 @@ public class adminpage extends javax.swing.JFrame {
         header.setText("OWSB Purchase Order Management System");
         header.setToolTipText("");
 
-        btnBack.setBackground(new java.awt.Color(102, 102, 102));
-        btnBack.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
-        btnBack.setForeground(new java.awt.Color(255, 255, 255));
-        btnBack.setText("Back");
-        btnBack.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBackActionPerformed(evt);
-            }
-        });
-
         btnExit.setBackground(new java.awt.Color(102, 102, 102));
         btnExit.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
         btnExit.setForeground(new java.awt.Color(255, 255, 255));
@@ -231,9 +223,7 @@ public class adminpage extends javax.swing.JFrame {
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(49, 49, 49)
-                .addComponent(btnBack)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 163, Short.MAX_VALUE)
+                .addContainerGap(284, Short.MAX_VALUE)
                 .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnExit)
@@ -245,7 +235,6 @@ public class adminpage extends javax.swing.JFrame {
                 .addContainerGap(10, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(header)
-                    .addComponent(btnBack)
                     .addComponent(btnExit))
                 .addGap(9, 9, 9))
         );
@@ -323,14 +312,6 @@ public class adminpage extends javax.swing.JFrame {
             }
         });
 
-        btnsave.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnsave.setText("Save");
-        btnsave.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnsaveActionPerformed(evt);
-            }
-        });
-
         passwdtxt.setText("passwd");
         passwdtxt.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -354,6 +335,22 @@ public class adminpage extends javax.swing.JFrame {
             }
         });
 
+        btnadd.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnadd.setText("Add");
+        btnadd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnaddActionPerformed(evt);
+            }
+        });
+
+        btnsave.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnsave.setText("Save");
+        btnsave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnsaveActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -363,35 +360,36 @@ public class adminpage extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(137, 137, 137)
                         .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel3Layout.createSequentialGroup()
-                            .addGap(57, 57, 57)
-                            .addComponent(btndelete)
-                            .addGap(18, 18, 18)
-                            .addComponent(btnsave)
-                            .addGap(18, 18, 18)
-                            .addComponent(btnedit))
-                        .addGroup(jPanel3Layout.createSequentialGroup()
-                            .addContainerGap()
-                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel27, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGap(18, 18, 18)
-                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(useraddresstxt)
-                                .addComponent(rolebox, 0, 217, Short.MAX_VALUE)
-                                .addComponent(useremailtxt)
-                                .addComponent(userphntxt)
-                                .addComponent(usernametxt)
-                                .addComponent(useridtxt)
-                                .addComponent(passwdtxt)))))
-                .addContainerGap(77, Short.MAX_VALUE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel27, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(useraddresstxt)
+                            .addComponent(rolebox, 0, 217, Short.MAX_VALUE)
+                            .addComponent(useremailtxt)
+                            .addComponent(userphntxt)
+                            .addComponent(usernametxt)
+                            .addComponent(useridtxt)
+                            .addComponent(passwdtxt)))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(43, 43, 43)
+                        .addComponent(btndelete)
+                        .addGap(33, 33, 33)
+                        .addComponent(btnadd)
+                        .addGap(28, 28, 28)
+                        .addComponent(btnsave)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnedit)))
+                .addContainerGap(78, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -428,9 +426,10 @@ public class adminpage extends javax.swing.JFrame {
                     .addComponent(rolebox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnsave)
                     .addComponent(btnedit)
-                    .addComponent(btndelete))
+                    .addComponent(btndelete)
+                    .addComponent(btnadd)
+                    .addComponent(btnsave))
                 .addGap(26, 26, 26))
         );
 
@@ -545,7 +544,7 @@ public class adminpage extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(38, Short.MAX_VALUE))))
+                        .addContainerGap(37, Short.MAX_VALUE))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -564,7 +563,7 @@ public class adminpage extends javax.swing.JFrame {
                             .addComponent(btnprevious)
                             .addComponent(btnnext)
                             .addComponent(btnlast))))
-                .addGap(0, 52, Short.MAX_VALUE))
+                .addContainerGap(52, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -581,12 +580,7 @@ public class adminpage extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
-        new mainlogin().setVisible(true);
-        this.dispose();
-    }//GEN-LAST:event_btnBackActionPerformed
-
-    private void btnsaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnsaveActionPerformed
+    private void btnaddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnaddActionPerformed
         // TODO add your handling code here:
         String userid = useridtxt.getText();
         String username = usernametxt.getText();
@@ -595,45 +589,49 @@ public class adminpage extends javax.swing.JFrame {
         String email = useremailtxt.getText();
         String address = useraddresstxt.getText();
         String role = rolebox.getSelectedItem().toString();
-        //User newuser = new User(userid, username, passwd, phn, email, address, role);
-        //String userid = generateUserid(role);
+        
+        if(username.isEmpty() || passwd.isEmpty() || role.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Please fill in the neccesary fields (Username, Password, and Role).");
+            return;
+        }
         
         User newuser;
         switch(role){//user
             case "Admin":
-                newuser = new Administrator(userid, username,passwd, phn, email, address,role);
+                newuser = new Administrator(userid, username, phn, email, address,passwd,role);
                 break;
             case "Sales Manager":
                 String region = saleregionbox.getSelectedItem().toString();
-                newuser = new SalesManagerUser(userid, username,passwd, phn, email, address,role,region);
+                newuser = new SalesManagerUser(userid, username, phn, email, address,passwd,role,region);
                 break;
             case "Purchase Manager":
                 String approvelimit = approvelimitbox.getSelectedItem().toString();
-                newuser = new PurchaseManagerUser(userid, username,passwd, phn, email, address,role,approvelimit);
+                newuser = new PurchaseManagerUser(userid, username, phn, email, address,passwd,role,approvelimit);
                 break;
             case "Inventory Manager":
                 String applimit = approvelimitbox.getSelectedItem().toString();
-                newuser = new InventoryManager(userid, username,passwd, phn, email, address,role,applimit);
+                newuser = new InventoryManager(userid, username, phn, email, address,passwd,role,applimit);
                 break;
             case "Finance Manager":
-                newuser = new FinanceManager(userid, username,passwd, phn, email, address,role);
+                newuser = new FinanceManager(userid, username, phn, email, address,passwd,role);
                 break;
             default:
                 JOptionPane.showMessageDialog(this, "error save");
                 return;
-
         }
-        if(newuser instanceof Administrator){
-            if(((Administrator)newuser).adduser()){
-                JOptionPane.showMessageDialog(this, "add user");
+        
+        
+    
+        if(newuser.adduser()){
+                JOptionPane.showMessageDialog(this, "Successful add user");
                 clearfileds();
-                useridtxt.setText(generateUserid(role));
+                //useridtxt.setText(generateUserid(role));
             }else{
-                JOptionPane.showMessageDialog(this, "error add user");
+                JOptionPane.showMessageDialog(this, "Error add user");
             }
-        }
+        
         loadAllUsers();
-    }//GEN-LAST:event_btnsaveActionPerformed
+    }//GEN-LAST:event_btnaddActionPerformed
 
     private void useraddresstxtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useraddresstxtActionPerformed
         // TODO add your handling code here:
@@ -651,14 +649,30 @@ public class adminpage extends javax.swing.JFrame {
         // TODO add your handling code here:
         String userid = useridtxt.getText();
         User user = User.finduserid(userid);
-        
-        if (user instanceof Administrator){
-            if (((Administrator)user).deleteuser(userid)){
-                JOptionPane.showMessageDialog(this, "deleted");
+        if(user ==null){
+            JOptionPane.showMessageDialog(this, "Error. Please select Edit mode.");
+        }else{
+        int confirm = JOptionPane.showConfirmDialog(
+                this, 
+                "Confirm to delete user ID: "+userid+"?", 
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+                );
+        if(confirm ==JOptionPane.YES_OPTION){
+            if (user.deleteuser(userid)){
+                JOptionPane.showMessageDialog(this, "User ID: "+userid+" deleted.");
                 clearfileds();
+                String role = rolebox.getSelectedItem().toString();
+                useridtxt.setText(generateUserid(role));  
+                extradetails(role);
+                loadAllUsers();
+                rolebox.addActionListener(this::roleboxActionPerformed);
+               
             }else{
-                JOptionPane.showMessageDialog(this, "error delete");
+                JOptionPane.showMessageDialog(this, "Error delete.");
             }
+        }
         }
         loadAllUsers();
     }//GEN-LAST:event_btndeleteActionPerformed
@@ -713,23 +727,29 @@ public class adminpage extends javax.swing.JFrame {
 
     private void btneditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btneditActionPerformed
         // TODO add your handling code here:
-        String userid = useridtxt.getText();
-        User user = User.finduserid(userid);
+        rolebox.removeActionListener(rolebox.getActionListeners()[0]);
         
-        if (user !=null && user instanceof Administrator){
-            user.username=usernametxt.getText();//username,passwd, phn, email, address,role
-            user.userPw = new String(passwdtxt.getPassword());
-            user.userPhone=userphntxt.getText();
-            user.userEmail=useremailtxt.getText();
-            user.userAddress=useraddresstxt.getText();
-            user.userRole=rolebox.getSelectedItem().toString();
-            if (((Administrator)user).edituser()){
-                JOptionPane.showMessageDialog(this, "edited");
-            }else{
-                JOptionPane.showMessageDialog(this, "error edit");
-            }
+        User currentUser = allUsers.get(currentUserIndex);
+        useridtxt.setText(currentUser.getUserId());
+        usernametxt.setText(currentUser.getUsername());
+        passwdtxt.setText(currentUser.getUserPw());
+        userphntxt.setText(currentUser.getUserPhone());
+        useremailtxt.setText(currentUser.getUserEmail());
+        useraddresstxt.setText(currentUser.getUserAddress());
+        rolebox.setSelectedItem(currentUser.getUserRole());
+        extradetails(currentUser.getUserRole());
+        
+        if (currentUser instanceof SalesManagerUser){
+            saleregionbox.setSelectedItem(((SalesManagerUser)currentUser).getSalesRegion());
+            saleregionbox.setVisible(true);
+        }else if(currentUser instanceof PurchaseManagerUser){
+            approvelimitbox.setSelectedItem(((PurchaseManagerUser)currentUser).getApprovalLimit());
+            approvelimitbox.setVisible(true);
+        }else if(currentUser instanceof InventoryManager){
+            approvelimitbox.setSelectedItem(((InventoryManager)currentUser).getApprovalLimit());
+            approvelimitbox.setVisible(true);
         }
-        loadAllUsers();
+        
     }//GEN-LAST:event_btneditActionPerformed
 
     private void saleregionboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saleregionboxActionPerformed
@@ -744,6 +764,44 @@ public class adminpage extends javax.swing.JFrame {
         // TODO add your handling code here:
         System.exit(0);
     }//GEN-LAST:event_btnExitActionPerformed
+
+    private void btnsaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnsaveActionPerformed
+        // TODO add your handling code here:
+        String userid = useridtxt.getText();
+        User user = User.finduserid(userid);
+        if(user ==null){
+            JOptionPane.showMessageDialog(this, "Error save edit. Please select Edit mode.");
+        }else{
+            user.username=usernametxt.getText();//username,passwd, phn, email, address,role
+            user.userPw = new String(passwdtxt.getPassword());
+            user.userPhone=userphntxt.getText();
+            user.userEmail=useremailtxt.getText();
+            user.userAddress=useraddresstxt.getText();
+            user.userRole=rolebox.getSelectedItem().toString();
+            String newRole = user.userRole;
+            
+            if(user instanceof SalesManagerUser && newRole.equals("Sales Manager")){
+                ((SalesManagerUser)user).setSalesRegion(saleregionbox.getSelectedItem().toString());
+            }else if(user instanceof PurchaseManagerUser && newRole.equals("Purchase Manager")){
+                ((PurchaseManagerUser)user).setApprovalLimit(approvelimitbox.getSelectedItem().toString());
+            }else if(user instanceof InventoryManager && newRole.equals("Inventory Manager")){
+                ((InventoryManager)user).setApprovalLimit(approvelimitbox.getSelectedItem().toString());
+            }
+            
+            if (user.edituser()){
+                JOptionPane.showMessageDialog(this, "Successful edited");
+                clearfileds();
+                String role = rolebox.getSelectedItem().toString();
+                useridtxt.setText(generateUserid(role));  
+                extradetails(role);
+            }else{
+                JOptionPane.showMessageDialog(this, "Error edit");
+            }
+        }
+        loadAllUsers();
+        rolebox.addActionListener(this::roleboxActionPerformed);
+        
+    }//GEN-LAST:event_btnsaveActionPerformed
 
     /**
      * @param args the command line arguments
@@ -783,8 +841,8 @@ public class adminpage extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> approvelimitbox;
-    private javax.swing.JButton btnBack;
     private javax.swing.JButton btnExit;
+    private javax.swing.JButton btnadd;
     private javax.swing.JButton btndelete;
     private javax.swing.JButton btnedit;
     private javax.swing.JButton btnfirst;

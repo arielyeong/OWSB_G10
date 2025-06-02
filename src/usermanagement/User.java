@@ -78,7 +78,7 @@ public abstract class User {
         return null;
     }
     //user
-    private static User createuserfromparts(String[] parts){
+    static User createuserfromparts(String[] parts){
         String userRole = parts[6];
         switch (userRole){
             case "Admin":
