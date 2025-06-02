@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-
+import usermanagement.impage;
 /**
  * UI Frame 
  * @WeiKang
@@ -56,7 +56,7 @@ public class InventoryManagerFrame extends JFrame {
         backButton.setForeground(Color.WHITE);
         backButton.setFont(new Font("Serif", Font.BOLD, 12));
         backButton.addActionListener(e -> {
-            new MainMenu().setVisible(true);
+            new impage().setVisible(true);
             dispose();
         });
         headerPanel.add(backButton, BorderLayout.WEST);

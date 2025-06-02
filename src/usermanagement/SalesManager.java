@@ -15,8 +15,7 @@ import salesmanagement.pr;
  *
  * @author charlotte
  */
-public abstract class SalesManager /*extends User*/ {
-    /*private String salesRegion;*/
+public abstract class SalesManager  {
     protected List<Item> items;
     protected List<Supplier> suppliers;
     protected List<DailySales> salesList = new ArrayList<>();
@@ -45,9 +44,7 @@ public abstract class SalesManager /*extends User*/ {
     public abstract boolean addPr(pr pr);
     public abstract boolean updatePr(pr updatedPr);
 
-    public SalesManager(/*String userId, String username, String userPhone, String userEmail, String userAddress, String userPw, String userRole,String salesRegion*/) {
-        //super(userId, username, userPhone, userEmail, userAddress, userPw, userRole);
-        //this.salesRegion = salesRegion;
+    public SalesManager() {
         items = new ArrayList<>();
         suppliers = new ArrayList<>();
         salesList = new ArrayList<>();

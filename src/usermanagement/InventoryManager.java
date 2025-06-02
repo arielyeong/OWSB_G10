@@ -20,11 +20,22 @@ public class InventoryManager extends User {
         return super.toString()+"|"+ approvalLimit;
     }
     @Override
-    public boolean adduser(){return false;}
+    public boolean adduser(){
+        return savetofile();
+    }
+    
     @Override
-    public boolean deleteuser(String userId){return false;}
+    public boolean deleteuser(String userId){
+        return deleteuserfile(userId);
+    }
+    
     @Override
-    public boolean edituser(){return false;}
+    public boolean edituser(){
+        if(!deleteuserfile(this.userId)){
+            return false;
+        }
+        return savetofile();
+    }
 
     public String getApprovalLimit() {
         return approvalLimit;

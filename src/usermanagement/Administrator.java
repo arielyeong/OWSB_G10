@@ -6,22 +6,19 @@ package usermanagement;
 
 import java .util.ArrayList;
 import java.io.*;
+import static usermanagement.User.deleteuserfile;
 
 /**
  *
  * @author yingx
  */
 public class Administrator extends User {//inheritance
-    //private ArrayList<User> userlist; //= new ArrayList<>();
-    //private final String user_file = "user.txt";
-    //public ArrayList<User> getUserList(){return userlist;}
 
     public Administrator(String userId, String username, String userPhone, String userEmail, String userAddress, String userPw, String userRole) {
         super(userId, username, userPhone, userEmail, userAddress, userPw, "Admin");//constructor chaining
-        //userlist = new ArrayList<>();
         
     }
-    
+
     @Override
     public boolean adduser(){
         return savetofile();

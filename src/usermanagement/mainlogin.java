@@ -251,7 +251,7 @@ public class mainlogin extends javax.swing.JFrame {
                     }
                 }
             }else {
-                JOptionPane.showMessageDialog(this, "Error found"); 
+                JOptionPane.showMessageDialog(this, "Error ID or Password or Role."); 
             }
 
         } catch (IOException e) {
