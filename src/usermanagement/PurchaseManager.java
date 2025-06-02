@@ -107,8 +107,9 @@ public abstract class PurchaseManager{//inheritance
         return String.format("PO%03d", maxId + 1);
     }
     
-    public po createPoFromPr(pr approvedPr) {
+    public po createPoFromPr(pr approvedPr, String createdBy) {
         List<pr> approvedPrs = prM.getApprovedPrs();
+        //List<pr> approvedPrs = getApprovedPrs();
         boolean isValid = approvedPrs.stream()
             .anyMatch(p -> p.getPrId().equals(approvedPr.getPrId()));
 
@@ -121,7 +122,7 @@ public abstract class PurchaseManager{//inheritance
         po newPo = new po(
             newPoId,
             approvedPr.getPrId(),
-            null,
+            createdBy,
             approvedPr.getSmId(),
             approvedPr.getSupplierId(),
             prItem, 
