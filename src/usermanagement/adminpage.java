@@ -24,6 +24,7 @@ public class adminpage extends javax.swing.JFrame {
     private final String user_file = "user.txt";
     private List<User> allUsers = new ArrayList<>();
     private int currentUserIndex = 0;
+    private int saveIndex = -1;
     
     private void clearfileds(){
         useridtxt.setText(generateUserid(rolebox.getSelectedItem().toString()));
@@ -195,6 +196,9 @@ public class adminpage extends javax.swing.JFrame {
         btnprevious = new javax.swing.JButton();
         btnnext = new javax.swing.JButton();
         btnlast = new javax.swing.JButton();
+        searchidtxt = new javax.swing.JTextField();
+        btnSearch = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -520,6 +524,16 @@ public class adminpage extends javax.swing.JFrame {
             }
         });
 
+        btnSearch.setText("Search");
+        btnSearch.setToolTipText("");
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("Search User ID");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -543,8 +557,15 @@ public class adminpage extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(37, Short.MAX_VALUE))))
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(jLabel1)
+                                    .addGap(18, 18, Short.MAX_VALUE)
+                                    .addComponent(searchidtxt, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(btnSearch))
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 397, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -555,8 +576,13 @@ public class adminpage extends javax.swing.JFrame {
                     .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 273, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(26, 26, 26)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(searchidtxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnSearch)
+                            .addComponent(jLabel1))
+                        .addGap(25, 25, 25)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 217, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btnfirst)
@@ -803,6 +829,39 @@ public class adminpage extends javax.swing.JFrame {
         
     }//GEN-LAST:event_btnsaveActionPerformed
 
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String userId = searchidtxt.getText().trim();
+        if (userId.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Please enter a User ID to search.");
+            return;
+        }
+        searchidtxt.setText("");
+        saveIndex = currentUserIndex;
+        for(int i=0;i<allUsers.size();i++){
+            if (allUsers.get(i).getUserId(). equalsIgnoreCase(userId)){
+                currentUserIndex = i;
+                displayCurrentUser();
+                return;
+            }
+        }
+        User foundUser = User.finduserid(userId);
+
+        if (foundUser == null) {
+            JOptionPane.showMessageDialog(this, "User "+ userId+" not found.");
+            if(saveIndex != -1){
+                currentUserIndex = saveIndex;
+                displayCurrentUser();
+            }
+            return;
+        }
+            
+        currentUserIndex = allUsers.indexOf(foundUser);
+        if(currentUserIndex == -1){
+            currentUserIndex = allUsers.size() -1;
+        }    
+        displayCurrentUser();        
+    }//GEN-LAST:event_btnSearchActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -842,6 +901,7 @@ public class adminpage extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> approvelimitbox;
     private javax.swing.JButton btnExit;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnadd;
     private javax.swing.JButton btndelete;
     private javax.swing.JButton btnedit;
@@ -851,6 +911,7 @@ public class adminpage extends javax.swing.JFrame {
     private javax.swing.JButton btnprevious;
     private javax.swing.JButton btnsave;
     private javax.swing.JLabel header;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel21;
@@ -869,6 +930,7 @@ public class adminpage extends javax.swing.JFrame {
     private javax.swing.JPasswordField passwdtxt;
     private javax.swing.JComboBox<String> rolebox;
     private javax.swing.JComboBox<String> saleregionbox;
+    private javax.swing.JTextField searchidtxt;
     private javax.swing.JTextField useraddresstxt;
     private javax.swing.JTextField useremailtxt;
     private javax.swing.JTextField useridtxt;
