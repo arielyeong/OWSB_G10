@@ -8,11 +8,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 
- * 
- * @WeiKang
- */
 public class InventoryManagerSystem {
     private ItemManager itemManager;
     private PoManager poManager;
@@ -24,75 +19,99 @@ public class InventoryManagerSystem {
         this.itemManager = itemManager;
         this.poManager = poManager;
     }
-    
-    /**
-     * Get a list of all items in the inventory
-     * @return List of all items
-     */
+
     public List<Item> viewAllItems() {
         return itemManager.getAllItems();
     }
-    
-    /**
-     * Update stock quantity based on received items from approved Purchase Orders
-     * @param poId Purchase Order ID
-     * @param receivedQuantity Quantity received
-     * @return true if update was successful, false otherwise
-     */
+
     public boolean updateStockFromPO(String poId, int receivedQuantity) {
-        po purchaseOrder = poManager.findPo(poId);
-        if (purchaseOrder == null || !purchaseOrder.getPoStatus().equals("APPROVED")) {
-            return false; // PO not found or not approved
+        try {
+            if (poId == null || poId.trim().isEmpty() || receivedQuantity <= 0) {
+                System.out.println("Invalid input parameters: poId=" + poId + ", receivedQuantity=" + receivedQuantity);
+                return false;
+            }
+            
+            po purchaseOrder = poManager.findPo(poId.trim());
+            if (purchaseOrder == null) {
+                System.out.println("Purchase Order not found: " + poId);
+                return false;
+            }
+            
+            String currentStatus = purchaseOrder.getPoStatus();
+            if (!"APPROVED".equalsIgnoreCase(currentStatus) && 
+                !"SUBMITTED".equalsIgnoreCase(currentStatus) && 
+                !"ORDERED".equalsIgnoreCase(currentStatus)) {
+                System.out.println("Purchase Order cannot be received. Current status: " + currentStatus);
+                return false;
+            }
+            
+            pr.PrItem prItem = purchaseOrder.getItem();
+            if (prItem == null) {
+                System.out.println("No item found in Purchase Order: " + poId);
+                return false;
+            }
+            
+            Item itemFromPr = prItem.getItem();
+            if (itemFromPr == null) {
+                System.out.println("No item reference found in PrItem for PO: " + poId);
+                return false;
+            }
+            
+            Item item = itemManager.findItemById(itemFromPr.getItemId());
+            if (item == null) {
+                System.out.println("Item not found in inventory: " + itemFromPr.getItemId());
+                return false;
+            }
+            
+            int currentStock = item.getStockQuantity();
+            int newStock = currentStock + receivedQuantity;
+            item.setStockQuantity(newStock);
+            
+            System.out.println("Updating stock for item " + item.getItemId() + 
+                             " from " + currentStock + " to " + newStock);
+            
+            purchaseOrder.setPoStatus("RECEIVED");
+            LocalDate currentDate = LocalDate.now();
+            
+            if (purchaseOrder.getOrderDate() != null && currentDate.isBefore(purchaseOrder.getOrderDate())) {
+                purchaseOrder.setDeliveryDate(purchaseOrder.getOrderDate());
+            } else {
+                purchaseOrder.setDeliveryDate(currentDate);
+            }
+            
+            boolean itemUpdated = itemManager.updateItem(item);
+            boolean poUpdated = poManager.updatePo(purchaseOrder);
+            
+            if (!itemUpdated) {
+                System.out.println("Failed to update item in inventory");
+                return false;
+            }
+            
+            if (!poUpdated) {
+                System.out.println("Failed to update purchase order");
+                return false;
+            }
+            
+            System.out.println("Successfully updated stock from PO: " + poId);
+            return true;
+            
+        } catch (Exception e) {
+            System.out.println("Error updating stock from PO: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-        
-        pr.PrItem prItem = purchaseOrder.getItem();
-        if (prItem == null) {
-            return false; // No item in PO
-        }
-        
-        Item item = itemManager.findItemById(prItem.getItem().getItemId());
-        if (item == null) {
-            return false; // Item not found in inventory
-        }
-        
-        // Update stock quantity
-        int currentStock = item.getStockQuantity();
-        item.setStockQuantity(currentStock + receivedQuantity);
-        
-        // Update PO status to RECEIVED
-        purchaseOrder.setPoStatus("RECEIVED");
-        purchaseOrder.setDeliveryDate(LocalDate.now());
-        
-        // Save changes
-        itemManager.updateItem(item);
-        poManager.updatePo(purchaseOrder);
-        
-        return true;
     }
-    
-    /**
-     * Get a list of items with stock levels below the threshold
-     * @param threshold Stock level threshold
-     * @return List of items with low stock
-     */
+
     public List<Item> getLowStockItems(int threshold) {
         return itemManager.getAllItems().stream()
                 .filter(item -> item.getStockQuantity() < threshold)
                 .collect(Collectors.toList());
     }
-    
-    /**
-     * Get a list of items with stock levels below the default threshold
-     * @return List of items with low stock
-     */
+
     public List<Item> getLowStockItems() {
         return getLowStockItems(LOW_STOCK_THRESHOLD);
     }
-    
-    /**
-     * Generate a stock report and save it to a file
-     * @return true if report was generated successfully, false otherwise
-     */
+
     public boolean generateStockReport() {
         List<Item> items = itemManager.getAllItems();
         LocalDate today = LocalDate.now();
@@ -142,14 +161,12 @@ public class InventoryManagerSystem {
             return false;
         }
     }
-    
-    /**
-     * Get a list of purchase orders that need to be verified for received items
-     * @return List of purchase orders with status APPROVED
-     */
+
     public List<po> getPendingReceiptPOs() {
         return poManager.getAllPo().stream()
-                .filter(po -> po.getPoStatus().equals("APPROVED"))
+                .filter(po -> "APPROVED".equals(po.getPoStatus()) || 
+                             "SUBMITTED".equals(po.getPoStatus()) || 
+                             "ORDERED".equals(po.getPoStatus()))
                 .collect(Collectors.toList());
     }
 }
