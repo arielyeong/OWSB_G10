@@ -246,7 +246,8 @@ public class smpage extends javax.swing.JFrame {
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
         // TODO add your handling code here:
-        System.exit(0);
+        new mainlogin().setVisible(true);
+        dispose();
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void btnViewItemBelowROLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewItemBelowROLActionPerformed
