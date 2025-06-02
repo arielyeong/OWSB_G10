@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @DennisKoh
- */
+
+//DennisKoh
+
 public class FinanceManagerSystem {
     private PoManager poManager;
     private PrManager prManager;
@@ -23,7 +23,6 @@ public class FinanceManagerSystem {
     private static final String PAYMENT_RECORD_FILE = "payment_record.txt";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
-    // Map to track payments to suppliers
     private Map<String, List<Payment>> supplierPayments;
     
     public FinanceManagerSystem(PoManager poManager, PrManager prManager, 
@@ -34,70 +33,99 @@ public class FinanceManagerSystem {
         this.itemManager = itemManager;
         this.supplierPayments = new HashMap<>();
     }
-    
-    /**
-     * Approve a purchase order
-     * @param poId Purchase Order ID
-     * @param financeManagerId Finance Manager ID who is approving
-     * @return true if approval was successful, false otherwise
-     */
+
     public boolean approvePurchaseOrder(String poId, String financeManagerId) {
         po purchaseOrder = poManager.findPo(poId);
-        if (purchaseOrder == null || !purchaseOrder.getPoStatus().equals("PENDING")) {
-            return false; // PO not found or not in PENDING status
+        if (purchaseOrder == null) {
+            return false;
         }
         
-        // Update PO status to APPROVED
-        purchaseOrder.setPoStatus("APPROVED");
-        purchaseOrder.setOrderDate(LocalDate.now());
+        String currentStatus = purchaseOrder.getPoStatus();
+        if (!"SUBMITTED".equals(currentStatus) && !"ORDERED".equals(currentStatus)) {
+            return false; 
+        }
         
-        // Save changes
+        purchaseOrder.setPoStatus("APPROVED");
+        LocalDate currentDate = LocalDate.now();
+        purchaseOrder.setOrderDate(currentDate);
+        
+        if (purchaseOrder.getDeliveryDate() == null || 
+            purchaseOrder.getDeliveryDate().isBefore(currentDate)) {
+            purchaseOrder.setDeliveryDate(currentDate.plusDays(7)); // Set delivery 7 days from now
+        }
+        
+        if (purchaseOrder.getInvoiceDate() != null && 
+            purchaseOrder.getInvoiceDate().isBefore(currentDate)) {
+            purchaseOrder.setInvoiceDate(null);
+        }
+        
+        poManager.updatePo(purchaseOrder);
+        
+        return true;
+    }
+
+    public boolean receiveInventory(String poId) {
+        po purchaseOrder = poManager.findPo(poId);
+        if (purchaseOrder == null) {
+            return false; 
+        }
+        
+        String currentStatus = purchaseOrder.getPoStatus();
+        if (!"APPROVED".equals(currentStatus) && !"ORDERED".equals(currentStatus)) {
+            return false; 
+        }
+        
+        purchaseOrder.setPoStatus("RECEIVED");
+        LocalDate currentDate = LocalDate.now();
+        
+        if (purchaseOrder.getOrderDate() != null && currentDate.isBefore(purchaseOrder.getOrderDate())) {
+            purchaseOrder.setDeliveryDate(purchaseOrder.getOrderDate());
+        } else {
+            purchaseOrder.setDeliveryDate(currentDate);
+        }
+        
         poManager.updatePo(purchaseOrder);
         
         return true;
     }
     
-    /**
-     * Verify inventory update from a received purchase order
-     * @param poId Purchase Order ID
-     * @return true if verification was successful, false otherwise
-     */
     public boolean verifyInventoryUpdate(String poId) {
         po purchaseOrder = poManager.findPo(poId);
-        if (purchaseOrder == null || !purchaseOrder.getPoStatus().equals("RECEIVED")) {
-            return false; // PO not found or not in RECEIVED status
+        if (purchaseOrder == null) {
+            return false; 
         }
         
-        // Update PO status to VERIFIED
+        String currentStatus = purchaseOrder.getPoStatus();
+        if ("APPROVED".equals(currentStatus) || "ORDERED".equals(currentStatus)) {
+            if (!receiveInventory(poId)) {
+                return false;
+            }
+            purchaseOrder = poManager.findPo(poId);
+        }
+        
+        if (!purchaseOrder.getPoStatus().equals("RECEIVED")) {
+            return false; 
+        }
+        
         purchaseOrder.setPoStatus("VERIFIED");
         
-        // Save changes
         poManager.updatePo(purchaseOrder);
         
         return true;
     }
     
-    /**
-     * Process payment to a supplier for a verified purchase order
-     * @param poId Purchase Order ID
-     * @param paymentAmount Amount to be paid
-     * @param paymentMethod Payment method (e.g., "BANK_TRANSFER", "CHECK")
-     * @param financeManagerId Finance Manager ID who is processing the payment
-     * @return true if payment was processed successfully, false otherwise
-     */
     public boolean processPayment(String poId, double paymentAmount, String paymentMethod, String financeManagerId) {
         po purchaseOrder = poManager.findPo(poId);
         if (purchaseOrder == null || !purchaseOrder.getPoStatus().equals("VERIFIED")) {
-            return false; // PO not found or not in VERIFIED status
+            return false; 
         }
         
         String supplierId = purchaseOrder.getSupplierId();
         Supplier supplier = supplierManager.findSupplierById(supplierId);
         if (supplier == null) {
-            return false; // Supplier not found
+            return false; 
         }
         
-        // Create payment record
         Payment payment = new Payment(
                 poId,
                 supplierId,
@@ -107,29 +135,21 @@ public class FinanceManagerSystem {
                 financeManagerId
         );
         
-        // Add payment to supplier's payment records
         if (!supplierPayments.containsKey(supplierId)) {
             supplierPayments.put(supplierId, new ArrayList<>());
         }
         supplierPayments.get(supplierId).add(payment);
         
-        // Update PO status to PAID
         purchaseOrder.setPoStatus("PAID");
         purchaseOrder.setInvoiceDate(LocalDate.now());
         
-        // Save changes
         poManager.updatePo(purchaseOrder);
         
-        // Record payment in file
         recordPayment(payment);
         
         return true;
     }
     
-    /**
-     * Record payment in the payment record file
-     * @param payment Payment to record
-     */
     private void recordPayment(Payment payment) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(PAYMENT_RECORD_FILE, true))) {
             writer.write(String.format("%s|%s|%.2f|%s|%s|%s",
@@ -145,10 +165,6 @@ public class FinanceManagerSystem {
         }
     }
     
-    /**
-     * Generate a financial report and save it to a file
-     * @return true if report was generated successfully, false otherwise
-     */
     public boolean generateFinancialReport() {
         List<po> paidPOs = poManager.getAllPo().stream()
                 .filter(po -> po.getPoStatus().equals("PAID"))
@@ -202,48 +218,29 @@ public class FinanceManagerSystem {
             return false;
         }
     }
-    
-    /**
-     * Get a list of purchase orders that need financial approval
-     * @return List of purchase orders with status PENDING
-     */
+
     public List<po> getPendingApprovalPOs() {
         return poManager.getAllPo().stream()
-                .filter(po -> po.getPoStatus().equals("PENDING"))
+                .filter(po -> po.getPoStatus().equals("SUBMITTED"))
                 .collect(Collectors.toList());
     }
     
-    /**
-     * Get a list of purchase orders that need inventory verification
-     * @return List of purchase orders with status RECEIVED
-     */
     public List<po> getPendingVerificationPOs() {
         return poManager.getAllPo().stream()
                 .filter(po -> po.getPoStatus().equals("RECEIVED"))
                 .collect(Collectors.toList());
     }
-    
-    /**
-     * Get a list of purchase orders that need payment processing
-     * @return List of purchase orders with status VERIFIED
-     */
+
     public List<po> getPendingPaymentPOs() {
         return poManager.getAllPo().stream()
                 .filter(po -> po.getPoStatus().equals("VERIFIED"))
                 .collect(Collectors.toList());
     }
-    
-    /**
-     * Get a list of purchase requisitions
-     * @return List of all purchase requisitions
-     */
+
     public List<pr> getAllPurchaseRequisitions() {
         return prManager.getAllPr();
     }
-    
-    /**
-     * Inner class to represent a payment record
-     */
+
     public static class Payment {
         private String poId;
         private String supplierId;
