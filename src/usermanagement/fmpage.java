@@ -149,7 +149,8 @@ public class fmpage extends javax.swing.JFrame {
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
         // TODO add your handling code here:
-        System.exit(0);
+        new mainlogin().setVisible(true);
+        dispose();
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void btnUserProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUserProfileActionPerformed
