@@ -1,12 +1,19 @@
-STOCK REPORT - 2025-05-27
+STOCK REPORT - 2025-06-03
 ==================================================
 Item ID    | Item Name                      | Category        | Stock     
 -------------------------------------------------
 I001       | LED TV 42"                     | Groceries       | 45        
 I002       | Basmati Rice 5kg               | Groceries       | 80        
-I003       | Laptop Bag                     | Clothing        | 35        
+I003       | Laptop Bag                     | Other           | 35        
 I004       | Men's Jeans                    | Clothing        | 50        
-I005       | T-shirt                        | Other           | 60        
+I005       | T-shirt                        | Clothing        | 60        
+I006       | Bluetooth Speaker              | Electronic      | 25        
+I007       | Cooking Oil 1L                 | Groceries       | 100       
+I008       | Women's Jacket                 | Clothing        | 6         
+I009       | Wireless Mouse                 | Electronic      | 70        
+I010       | Office Paper A4 100pg          | Other           | 90        
+I011       | Notebook A5 100pg              | Other           | 190       
+I012       | USB Flash Drive 32GB           | Electronic      | 150       
 ==================================================
 Low Stock Items (Below 10 units):
-No items below threshold.
+I008       | Women's Jacket                 | Clothing        | 6         
