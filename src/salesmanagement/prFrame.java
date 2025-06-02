@@ -958,7 +958,6 @@ public class prFrame extends javax.swing.JFrame {
             String selectedItemId = selectedItemText.split(" - ")[0].trim();
             int quantity = Integer.parseInt(tItemQuantity.getText().trim());
             Item selectedItem = iM.findItemById(selectedItemId);
-            
             String smId = getSelectedSalesManagerId();
             if (smId == null) {
                 JOptionPane.showMessageDialog(this, "Please select a valid Sales Manager.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -1057,6 +1056,7 @@ public class prFrame extends javax.swing.JFrame {
             String supplierId = selectedSupplier.split(" - ")[0].trim();
             String dateText = tCreatedDate.getText();
             LocalDate createDate = LocalDate.parse(dateText);
+            LocalDate reqDate = tRequiredDate.getDate();
 
             String selectedItemText = (String) tItems.getSelectedItem();
             String selectedItemId = selectedItemText.split(" - ")[0].trim();
@@ -1085,6 +1085,7 @@ public class prFrame extends javax.swing.JFrame {
                 return;
             }
             
+            
             PrItem prItem = new PrItem(selectedItem, quantity);
 
             pr updatedPr = new pr(
@@ -1093,8 +1094,8 @@ public class prFrame extends javax.swing.JFrame {
                 supplierId,
                 prItem,
                 status,
-                currentDate,
-                createDate
+                createDate,
+                reqDate
             );
 
             prM.saveEditedPr(updatedPr); 
