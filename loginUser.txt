@@ -1,1 +1,1 @@
-SM001|salesmanager1|0129876543|salesmanager@gmail.com|45, Jln 6/D, Taman EFG|sm123|Sales Manager|Putrajaya
+PM001|purchasemanager1|0124681012|purchasemanager@gmail.com|7, Jln 8, Taman HIJ|pm123|Purchase Manager|1
