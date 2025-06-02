@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
+import usermanagement.fmpage;
 /**
  * UI Frame for Finance Manager 
  * @DennisKoh
@@ -63,7 +63,7 @@ public class FinanceManagerFrame extends JFrame {
         backButton.setForeground(Color.WHITE);
         backButton.setFont(new Font("Serif", Font.BOLD, 12));
         backButton.addActionListener(e -> {
-            new MainMenu().setVisible(true);
+            new fmpage().setVisible(true);
             dispose();
         });
         headerPanel.add(backButton, BorderLayout.WEST);
