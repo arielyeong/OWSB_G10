@@ -171,13 +171,13 @@ public class pmpage extends javax.swing.JFrame {
 
     private void btnPoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPoActionPerformed
         // TODO add your handling code here:
-        new prFrame().setVisible(true);
+        new poFrame().setVisible(true);
         dispose();
     }//GEN-LAST:event_btnPoActionPerformed
 
     private void btnPrActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrActionPerformed
         // TODO add your handling code here:
-        new poFrame().setVisible(true);
+        new prFrame().setVisible(true);
         dispose();
     }//GEN-LAST:event_btnPrActionPerformed
 
