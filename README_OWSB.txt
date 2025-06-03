@@ -4,6 +4,8 @@ System Flow Overview
 
 The OWSB Purchase Order Management System is designed to streamline procurement and inventory processes for Omega Wholesale Sdn Bhd. Below is the system flow:
 
+Can start with running the mainlogin.java in user management file and input in the user id and password accordingly
+
 =========================
 Login & Role-Based Access
 =========================
