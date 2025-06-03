@@ -1,1 +1,1 @@
-SM001|salesmanager1|0129876543|salesmanager@gmail.com|45, Jln 6/D, Taman EFG|sm123|Sales Manager|Putrajaya
+FM001|financemanager1|0121416182|financemanager@gmail.com|10, Jln 2, Taman OPQ|fm123|Finance Manager

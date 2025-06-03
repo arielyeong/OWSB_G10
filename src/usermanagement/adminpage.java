@@ -102,6 +102,7 @@ public class adminpage extends javax.swing.JFrame {
      */
     public adminpage() {
         initComponents();
+        setLocationRelativeTo(null);
         useridtxt.setText(generateUserid(rolebox.getSelectedItem().toString()));
         extradetails(rolebox.getSelectedItem().toString());
         usertxtarea.setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));

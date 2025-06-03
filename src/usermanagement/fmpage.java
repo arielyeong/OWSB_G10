@@ -16,6 +16,7 @@ public class fmpage extends javax.swing.JFrame {
      */
     public fmpage() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /**

@@ -25,6 +25,7 @@ public class pmpage extends javax.swing.JFrame {
      */
     public pmpage() {
         initComponents();
+        setLocationRelativeTo(null);
         
     }
 

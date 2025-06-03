@@ -17,6 +17,7 @@ public class impage extends javax.swing.JFrame {
      */
     public impage() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /**
