@@ -4,3 +4,4 @@ S003|GroceryMart|0171122334|grocery@mail.com|Penang Warehouse|PUBLIC BANK|562039
 S004|WearWorld|0165566778|wear@mail.com|Melaka Fashion House|HONG LEONG BANK|2568827
 S005|OfficePlus|0134455667|officeplus@mail.com|KL Business Park|MAYBANK|3322110
 S006|TechNova|0189988776|echnova@mail.com|Cyberjaya Tech Hub|CIMB BANK|7744552
+S007|Supplier 7|0123456789|supplier7@mail.com|KL|CIMB BANK|526320
